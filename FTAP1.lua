@@ -138,7 +138,6 @@ local lightbit = 0.3125
 local lightbitoffset = 1
 local lightbitradius = 20
 local usingradius = lightbitradius
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Player = game.Players.LocalPlayer
 local U = loadstring(game:HttpGet("https://paste.ee/r/7X7NLEPB", true))()
 --[[
