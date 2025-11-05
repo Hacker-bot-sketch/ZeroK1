@@ -491,24 +491,6 @@ function updateBlobLoopServerF()
     end
 end
 
-local function kickGrab()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = player.Character.HumanoidRootPart
-            if hrp:FindFirstChild("FirePlayerPart") then
-                local fpp = hrp.FirePlayerPart
-                fpp.Size = Vector3.new(4.5, 5.5, 4.5)
-                fpp.CollisionGroup = "1"
-                fpp.CanQuery = true
-            end
-        end
-        handleCharacterAdded(player)
-    end
-
-    local playerAddedConnection = Players.PlayerAdded:Connect(handleCharacterAdded)
-    table.insert(kickGrabConnections, playerAddedConnection)
-end
-
 function updateCurrentBlobmanF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1164,129 +1146,6 @@ function floatDownF()
     end
 end
 
-function inspectF()
-    local char = plr.Character
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-    mouseTargetInspectF()
-    inspectInfoF()
-    if not inspectD then
-        inspectD = true
-        if inspectT then
-            if currentInspectS == 1 then
-                currentInspectedAdorneeS = mouse.Target.Parent
-                currentInspectedPartS = mouse.Target
-                highlightC = highlight:Clone()
-                highlightC.Adornee = mouse.Target.Parent
-                highlightC.Parent = mouse.Target
-                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
-                highlightC.OutlineColor = Color3.fromRGB(160, 11, 11)
-            elseif currentInspectS == 2 then
-                currentInspectedAdorneeS = workspace.Plots:FindFirstChild("Plot"..currentHouseInspectS)
-                currentInspectedPartS = mouse.Target
-                highlightC = highlight:Clone()
-                highlightC.Adornee = workspace.Plots:FindFirstChild("Plot"..currentHouseInspectS)
-                highlightC.Parent = mouse.Target
-                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
-                highlightC.OutlineColor = Color3.fromRGB(0, 60, 180)
-            elseif currentInspectS == 3 then
-                currentInspectedAdorneeS = mouse.Target.Parent
-                currentInspectedPartS = mouse.Target
-                highlightC = highlight:Clone()
-                highlightC.Adornee = mouse.Target.Parent
-                highlightC.Parent = mouse.Target
-                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
-                highlightC.OutlineColor = Color3.fromRGB(20, 170, 20)
-            elseif currentInspectS == 4 then
-                currentInspectedAdorneeS = mouse.Target.Parent
-                currentInspectedPartS = mouse.Target
-                highlightC = highlight:Clone()
-                highlightC.Adornee = mouse.Target.Parent
-                highlightC.Parent = mouse.Target
-                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
-                highlightC.OutlineColor = Color3.fromRGB(180, 20, 180)
-            end
-        elseif not inspectT then
-            currentInspectS = 0
-            currentHouseInspectS = 0
-            currentInspectedPartS = nil
-            currentInspectedAdorneeS = nil
-            highlightC:Destroy()
-        end
-        wait(0.1)
-        inspectD = false
-    end
-end
-
-function inspectInfoF()
-    local char = plr.Character
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-    if not inspectInfoOnT and inspectInfoT and inspectT and currentInspectS ~= 0 and currentInspectedPartS ~= nil and currentInspectedAdorneeS ~= nil then
-        inspectInfoOnT = true
-        billboardC = billboard:Clone()
-        billboardC.Adornee = currentInspectedAdorneeS
-        billboardC.Parent = currentInspectedPartS
-
-        scrollframeC = scrollframe:Clone()
-        scrollframeC.Parent = billboardC
-        scrollframeC.Size = UDim2.new(0, 160, 0, 40)
-        scrollframeC.ScrollBarImageTransparency = 1 
-
-        textlabelC1 = textlabel:Clone()
-        textlabelC1.Parent = scrollframeC
-        textlabelC1.Size = UDim2.new(0, 140, 0, 40)
-        if currentInspectS == 1 then
-            textlabelC1.Text = currentInspectedAdorneeS.Name.." ("..game.Players:FindFirstChild(currentInspectedAdorneeS.Name).DisplayName..")"
-        else
-            textlabelC1.Text = currentInspectedAdorneeS.Name
-        end
-    elseif not inspectInfoT and inspectInfoOnT or not inspectT and inspectInfoOnT then
-        inspectInfoOnT = false
-        inspectInfoT = false
-        billboardC:Destroy()
-    end
-end
-
-function inspectBringF()
-    local char = plr.Character
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-    if inspectT and currentInspectS ~= 2 and currentInspectS ~= 4 then
-        returnPosS = hrp.CFrame
-        hrp.CFrame = currentInspectedAdorneeS.PrimaryPart.CFrame + Vector3.new(7, 3, 0)
-        wait(0.15)
-        if currentInspectS == 1 then
-            rs.GrabEvents.SetNetworkOwner:FireServer(currentInspectedAdorneeS:WaitForChild("HumanoidRootPart"), currentInspectedAdorneeS:WaitForChild("HumanoidRootPart").CFrame)
-            wait(0.1)
-            currentInspectedAdorneeS:WaitForChild("HumanoidRootPart").CFrame = returnPosS
-        else
-            rs.GrabEvents.SetNetworkOwner:FireServer(currentInspectedAdorneeS.PrimaryPart, currentInspectedAdorneeS.PrimaryPart.CFrame)
-            wait(0.1)
-            currentInspectedAdorneeS.PrimaryPart.CFrame = returnPosS
-        end
-        hrp.CFrame = returnPosS
-    elseif not inspectT then
-        if mouse.Target.Parent:IsDescendantOf(workspace.PlotItems) or string.match(mouse.Target.Parent.Parent.Name, "SpawnedInToys") or mouse.Target.Parent.Parent:FindFirstChild("SpawningPlatform") or mouse.Target.Parent:FindFirstChildOfClass("Humanoid") then
-            returnPosS = hrp.CFrame
-            mouseTargetS = mouse.Target
-            hrp.CFrame = mouseTargetS.Parent.PrimaryPart.CFrame + Vector3.new(10, 3, 0)
-            wait(0.15)
-            if mouseTargetS.Parent:FindFirstChildOfClass("Humanoid") then
-                rs.GrabEvents.SetNetworkOwner:FireServer(mouseTargetS.Parent:WaitForChild("HumanoidRootPart"), mouseTargetS.Parent:WaitForChild("HumanoidRootPart").CFrame)
-                wait(0.1)
-                mouseTargetS.Parent:WaitForChild("HumanoidRootPart").CFrame = returnPosS
-            else
-                rs.GrabEvents.SetNetworkOwner:FireServer(mouseTargetS.Parent.PrimaryPart, mouseTargetS.Parent.PrimaryPart.CFrame)
-                wait(0.1)
-                mouseTargetS.Parent.PrimaryPart.CFrame = returnPosS
-            end
-            hrp.CFrame = returnPosS
-            mouseTargetS = nil
-        end
-    end
-end
-
 function ragdollSpamF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1774,14 +1633,6 @@ local Slider = Tab:CreateSlider({
    -- The function that takes place when the slider changes
    -- The variable (Value) is a number which correlates to the value the slider is currently at
    end,
-})
-local Toggle = Tab:CreateToggle({
-    Name = "ragdollLoopD",
-    CurrentValue = false,
-    Flag = "ragdollLoopD",
-    Callback = function(Value)
-    ragdollLoopF = Value
-  end,
 })
 
 local Label = Tab:CreateLabel("Must Be On A Blobman!", 0, Color3.fromRGB(255, 255, 255), false)
