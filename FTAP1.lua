@@ -138,6 +138,7 @@ local lightbit = 0.3125
 local lightbitoffset = 1
 local lightbitradius = 20
 local usingradius = lightbitradius
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Player = game.Players.LocalPlayer
 local U = loadstring(game:HttpGet("https://paste.ee/r/7X7NLEPB", true))()
 --[[
@@ -187,11 +188,11 @@ _G.BlobmanDelay = 0.005
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
-   Name = "ZeroK",
+   Name = "Nagibatooooooooooooooor3000",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Pushka",
+   LoadingTitle = "Nagibator3000",
    LoadingSubtitle = "by Can",
-   ShowText = "Lellelelele", -- for mobile users to unhide rayfield, change if you'd like
+   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
    ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
@@ -489,6 +490,24 @@ function updateBlobLoopServerF()
             end
         end
     end
+end
+
+local function kickGrab()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            if hrp:FindFirstChild("FirePlayerPart") then
+                local fpp = hrp.FirePlayerPart
+                fpp.Size = Vector3.new(4.5, 5.5, 4.5)
+                fpp.CollisionGroup = "1"
+                fpp.CanQuery = true
+            end
+        end
+        handleCharacterAdded(player)
+    end
+
+    local playerAddedConnection = Players.PlayerAdded:Connect(handleCharacterAdded)
+    table.insert(kickGrabConnections, playerAddedConnection)
 end
 
 function updateCurrentBlobmanF()
@@ -1146,6 +1165,129 @@ function floatDownF()
     end
 end
 
+function inspectF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    mouseTargetInspectF()
+    inspectInfoF()
+    if not inspectD then
+        inspectD = true
+        if inspectT then
+            if currentInspectS == 1 then
+                currentInspectedAdorneeS = mouse.Target.Parent
+                currentInspectedPartS = mouse.Target
+                highlightC = highlight:Clone()
+                highlightC.Adornee = mouse.Target.Parent
+                highlightC.Parent = mouse.Target
+                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
+                highlightC.OutlineColor = Color3.fromRGB(160, 11, 11)
+            elseif currentInspectS == 2 then
+                currentInspectedAdorneeS = workspace.Plots:FindFirstChild("Plot"..currentHouseInspectS)
+                currentInspectedPartS = mouse.Target
+                highlightC = highlight:Clone()
+                highlightC.Adornee = workspace.Plots:FindFirstChild("Plot"..currentHouseInspectS)
+                highlightC.Parent = mouse.Target
+                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
+                highlightC.OutlineColor = Color3.fromRGB(0, 60, 180)
+            elseif currentInspectS == 3 then
+                currentInspectedAdorneeS = mouse.Target.Parent
+                currentInspectedPartS = mouse.Target
+                highlightC = highlight:Clone()
+                highlightC.Adornee = mouse.Target.Parent
+                highlightC.Parent = mouse.Target
+                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
+                highlightC.OutlineColor = Color3.fromRGB(20, 170, 20)
+            elseif currentInspectS == 4 then
+                currentInspectedAdorneeS = mouse.Target.Parent
+                currentInspectedPartS = mouse.Target
+                highlightC = highlight:Clone()
+                highlightC.Adornee = mouse.Target.Parent
+                highlightC.Parent = mouse.Target
+                highlightC.FillColor = Color3.fromRGB(255, 255, 255)
+                highlightC.OutlineColor = Color3.fromRGB(180, 20, 180)
+            end
+        elseif not inspectT then
+            currentInspectS = 0
+            currentHouseInspectS = 0
+            currentInspectedPartS = nil
+            currentInspectedAdorneeS = nil
+            highlightC:Destroy()
+        end
+        wait(0.1)
+        inspectD = false
+    end
+end
+
+function inspectInfoF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    if not inspectInfoOnT and inspectInfoT and inspectT and currentInspectS ~= 0 and currentInspectedPartS ~= nil and currentInspectedAdorneeS ~= nil then
+        inspectInfoOnT = true
+        billboardC = billboard:Clone()
+        billboardC.Adornee = currentInspectedAdorneeS
+        billboardC.Parent = currentInspectedPartS
+
+        scrollframeC = scrollframe:Clone()
+        scrollframeC.Parent = billboardC
+        scrollframeC.Size = UDim2.new(0, 160, 0, 40)
+        scrollframeC.ScrollBarImageTransparency = 1 
+
+        textlabelC1 = textlabel:Clone()
+        textlabelC1.Parent = scrollframeC
+        textlabelC1.Size = UDim2.new(0, 140, 0, 40)
+        if currentInspectS == 1 then
+            textlabelC1.Text = currentInspectedAdorneeS.Name.." ("..game.Players:FindFirstChild(currentInspectedAdorneeS.Name).DisplayName..")"
+        else
+            textlabelC1.Text = currentInspectedAdorneeS.Name
+        end
+    elseif not inspectInfoT and inspectInfoOnT or not inspectT and inspectInfoOnT then
+        inspectInfoOnT = false
+        inspectInfoT = false
+        billboardC:Destroy()
+    end
+end
+
+function inspectBringF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    if inspectT and currentInspectS ~= 2 and currentInspectS ~= 4 then
+        returnPosS = hrp.CFrame
+        hrp.CFrame = currentInspectedAdorneeS.PrimaryPart.CFrame + Vector3.new(7, 3, 0)
+        wait(0.15)
+        if currentInspectS == 1 then
+            rs.GrabEvents.SetNetworkOwner:FireServer(currentInspectedAdorneeS:WaitForChild("HumanoidRootPart"), currentInspectedAdorneeS:WaitForChild("HumanoidRootPart").CFrame)
+            wait(0.1)
+            currentInspectedAdorneeS:WaitForChild("HumanoidRootPart").CFrame = returnPosS
+        else
+            rs.GrabEvents.SetNetworkOwner:FireServer(currentInspectedAdorneeS.PrimaryPart, currentInspectedAdorneeS.PrimaryPart.CFrame)
+            wait(0.1)
+            currentInspectedAdorneeS.PrimaryPart.CFrame = returnPosS
+        end
+        hrp.CFrame = returnPosS
+    elseif not inspectT then
+        if mouse.Target.Parent:IsDescendantOf(workspace.PlotItems) or string.match(mouse.Target.Parent.Parent.Name, "SpawnedInToys") or mouse.Target.Parent.Parent:FindFirstChild("SpawningPlatform") or mouse.Target.Parent:FindFirstChildOfClass("Humanoid") then
+            returnPosS = hrp.CFrame
+            mouseTargetS = mouse.Target
+            hrp.CFrame = mouseTargetS.Parent.PrimaryPart.CFrame + Vector3.new(10, 3, 0)
+            wait(0.15)
+            if mouseTargetS.Parent:FindFirstChildOfClass("Humanoid") then
+                rs.GrabEvents.SetNetworkOwner:FireServer(mouseTargetS.Parent:WaitForChild("HumanoidRootPart"), mouseTargetS.Parent:WaitForChild("HumanoidRootPart").CFrame)
+                wait(0.1)
+                mouseTargetS.Parent:WaitForChild("HumanoidRootPart").CFrame = returnPosS
+            else
+                rs.GrabEvents.SetNetworkOwner:FireServer(mouseTargetS.Parent.PrimaryPart, mouseTargetS.Parent.PrimaryPart.CFrame)
+                wait(0.1)
+                mouseTargetS.Parent.PrimaryPart.CFrame = returnPosS
+            end
+            hrp.CFrame = returnPosS
+            mouseTargetS = nil
+        end
+    end
+end
+
 function ragdollSpamF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1584,7 +1726,7 @@ local Toggle = Tab:CreateToggle({
     CurrentValue = false,
     Flag = "AntiKick",
     Callback = function(CFrame)
-	game:GetService("Workspace").Marakosak7SpawnedInToys.NinjaShuriken:GetChildren()[2].CFrame = game:GetService("Workspace").Marakosak7.Torso.CFrame
+	game:GetService("Workspace").Marakosak5SpawnedInToys.NinjaShuriken:GetChildren()[2].CFrame = game:GetService("Workspace").Marakosak5.Torso.CFrame
     end,
 })
 
@@ -1634,6 +1776,14 @@ local Slider = Tab:CreateSlider({
    -- The variable (Value) is a number which correlates to the value the slider is currently at
    end,
 })
+local Toggle = Tab:CreateToggle({
+    Name = "ragdollLoopD",
+    CurrentValue = false,
+    Flag = "ragdollLoopD",
+    Callback = function(Value)
+    ragdollLoopF = Value
+  end,
+})
 
 local Label = Tab:CreateLabel("Must Be On A Blobman!", 0, Color3.fromRGB(255, 255, 255), false)
 
@@ -1645,7 +1795,6 @@ local PlayerDropdown = Tab:CreateDropdown({
 	Flag = "playerLoopDropdownFlag", 
 	Callback = function(Options)
 		playersInLoop1V = Options
-        kickTP = options
 	end,
 })
 
@@ -1681,46 +1830,9 @@ local Toggle = Tab:CreateToggle({
     end,
 })
 
-local Toggle = Tab:CreateToggle({
-    Name = "KickTP",
-    CurrentValue = false,
-    Flag = "KickTP",
-    Callback = function(Value)
-	kickTP = Value
-    player.Character:WaitForChild("HumanoidRootPart").CFrame = 
-	end
-   end,
-})
-
-local Toggle = Tab:CreateToggle({
-    Name = "Kick SRV9",
-    CurrentValue = false,
-    Flag = "blobLoopToggleFlag",
-    Callback = function(Value)
-        blobLoopT1 = Value
-	    if blobLoopT1 then
-            for i, e in ipairs(playersInLoop1V) do
-                table.insert(playersInLoop2V, e:match("^(.-) %("))
-            end
-            loopPlayerBlobF()
-        elseif not blobLoopT1 then
-            table.clear(playersInLoop2V)
-            loopPlayerBlobF()
-        end
-    end,
-})
-
-local Toggle = Tab:CreateToggle({
-    Name = "inspectBringF",
-    CurrentValue = false,
-    Flag = "inspectBringF",
-    Callback = function(Value)
-     inspectBringF = Value
-  end,
-})
-
 local Tab = Window:CreateTab("LagPanel", 4483362458) -- Title, Image
 local Divider = Tab:CreateDivider()
+
 local Toggle = Tab:CreateToggle({
 	Name = "Lag",
     CurrentValue = false,
@@ -1745,6 +1857,7 @@ local Toggle = Tab:CreateToggle({
     end
   end,
 })
+
 local Section = Tab:CreateSection("Lag")
 
 local Toggle = Tab:CreateToggle({
@@ -1789,16 +1902,6 @@ local packetsInput = Tab:CreateInput({
     end
 })
 
-local Toggle = Tab:CreateToggle({
-    Name = "ShurikenLagServer",
-    CurrentValue = false,
-    Flag = "shurikenLagServerToggleFlag",
-    Callback = function(Value)
-        shurikenLagServerT = Value
-        shurikenLagServerF()
-    end,
-})
-
 local Tab = Window:CreateTab("Gucci", 4483362458) -- Title, Image
 local Divider = Tab:CreateDivider()
 
@@ -1828,53 +1931,5 @@ local Toggle = Tab:CreateToggle({
     Flag = "destroyAutoGucciToggleFlag",
     Callback = function(Value)
         destroyAutoGucciT = Value
-    end,
-})
-
-local Tab = Window:CreateTab("Grab", 4483362458) -- Title, Image
-local Divider = Tab:CreateDivider()
-local Toggle = Tab:CreateToggle({
-    Name = "Kick Grab Anchor",
-    CurrentValue = false,
-    Flag = "AnchorKickGrab", 
-    Callback = function(enabled)
-        if enabled then
-            if not anchorKickCoroutine or coroutine.status(anchorKickCoroutine) == "dead" then
-                anchorKickCoroutine = coroutine.create(anchorKickGrab)
-                coroutine.resume(anchorKickCoroutine)
-            end
-        else
-            if anchorKickCoroutine and coroutine.status(anchorKickCoroutine) ~= "dead" then
-                coroutine.close(anchorKickCoroutine)
-                anchorKickCoroutine = nil
-            end
-        end
-    end,
-})
-
-local Toggle = Tab:CreateToggle({
-    Name = "Kick Grab",
-    CurrentValue = false,
-    Flag = "KickGrab", 
-    Callback = function(enabled)
-        if enabled then
-            kickGrab()
-        else
-            for _, connection in pairs(kickGrabConnections) do
-                connection:Disconnect()
-            end
-            for _, player in pairs(Players:GetPlayers()) do
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = player.Character.HumanoidRootPart
-                    if hrp:FindFirstChild("FirePlayerPart") then
-                        local fpp = hrp.FirePlayerPart
-                        fpp.Size = Vector3.new(2.5, 5.5, 2.5)
-                        fpp.CollisionGroup = "Default"
-                        fpp.CanQuery = false
-                    end
-                end
-            end
-            kickGrabConnections = {}
-        end
     end,
 })
