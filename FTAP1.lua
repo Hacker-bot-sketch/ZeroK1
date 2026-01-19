@@ -1527,6 +1527,17 @@ local Toggle = Tab:CreateToggle({
     end,
 })
 
+local Toggle = Tab:CreateToggle({
+    Name = "PCLD",
+    CurrentValue = false,
+    Flag = "PCLD",
+    Callback = function(enabled)
+			if enabled then
+				{"partesp", "playercharacterlocationdetector"}
+			end
+	end,
+})
+
 local Slider = Tab:CreateSlider({
     Name = "Strength Power",
     Range = {300, 10000},
