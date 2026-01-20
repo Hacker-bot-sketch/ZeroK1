@@ -733,18 +733,18 @@ function antiGrab1F()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
     local hum = char:WaitForChild("Humanoid")
-    while antiGrab1T and task.wait() do
+    while antiGrab1T  do
         if plr.IsHeld.Value == true and antiGrab1T == true then
             if hrp ~= nil then
                 if antiGrab1AnchorT then
                     hrp.Anchored = true
-                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr);wait(0.001) end
+                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr); end
                     hrp.Anchored = false
                 elseif not antiGrab1AnchorT then
-                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr);wait(0.001) end
-                end
-            end
-        end
+                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr); end
+                end           
+			end
+		end
     end
 end
 
@@ -754,7 +754,16 @@ function antiBlob1F()
             wait()
             toy.LeftDetector:Destroy()
             toy.RightDetector:Destroy()
-        end
+            if hrp ~= nil then
+                if antiGrab1AnchorT then
+                    hrp.Anchored = true
+                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr); end
+                    hrp.Anchored = false
+                elseif not antiGrab1AnchorT then
+                    while plr.IsHeld.Value == true do rs.CharacterEvents.Struggle:FireServer(plr); end
+                end
+			end
+		end
     end)
 end
 
@@ -809,6 +818,7 @@ function getPlayerList()
 end
 
 
+
 function loopPlayerBlobF()
     updateCurrentBlobmanF()
     for i, e in ipairs(playersInLoop2V) do
@@ -819,12 +829,10 @@ function loopPlayerBlobF()
             continue
         end
         if blobLoopT then
-            blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
-            wait()
-            blobDropF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
-            wait()
-            silentBlobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
-        end
+          game:GetService("Workspace").misha836484SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame
+		  wait()
+		  blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
+		end
     end
     while task.wait() and blobLoopT do
         for i, e in ipairs(playersInLoop2V) do
@@ -1341,6 +1349,17 @@ function getBlobmanF()
     end
 end
 
+function spawnKunaiF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    local spawnRemote = rs:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+    if spawnRemote then
+        pcall(function()spawnRemote:InvokeServer("NinjaKunai", hrp.CFrame*CFrame.new(0,0,-5),Vector3.new(0, -15.716, 0))end)
+        task.wait()
+    end
+end
+
 function spawnBlobmanF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1411,6 +1430,10 @@ function stopVelocityF()
     local hrp = char:WaitForChild("HumanoidRootPart")
     local hum = char:WaitForChild("Humanoid")
     hrp.AssemblyLinearVelocity = Vector3.zero
+end
+
+function antiKack()
+     game:GetService("Workspace").Marakosak7SpawnedInToys.NinjaKunai:GetChildren()[2].CFrame = game:GetService("Workspace").Marakosak7.HumanoidRootPart.CFrame
 end
 
 function zoomF()
@@ -1527,17 +1550,6 @@ local Toggle = Tab:CreateToggle({
     end,
 })
 
-local Toggle = Tab:CreateToggle({
-    Name = "PCLD",
-    CurrentValue = false,
-    Flag = "PCLD",
-    Callback = function(enabled)
-			if enabled then
-				{"partesp", "playercharacterlocationdetector"}
-			end
-	end,
-})
-
 local Slider = Tab:CreateSlider({
     Name = "Strength Power",
     Range = {300, 10000},
@@ -1614,7 +1626,7 @@ local Toggle = Tab:CreateToggle({
                             end
                         end
                         while localPlayer.IsHeld.Value do
-                            wait()
+						wait()
                         end
                         for _, part in pairs(character:GetChildren()) do
                             if part:IsA("BasePart") then
@@ -1736,8 +1748,12 @@ local Toggle = Tab:CreateToggle({
     Name = "AntiKick",
     CurrentValue = false,
     Flag = "AntiKick",
-    Callback = function(CFrame)
-	game:GetService("Workspace").Marakosak5SpawnedInToys.NinjaShuriken:GetChildren()[2].CFrame = game:GetService("Workspace").Marakosak5.Torso.CFrame
+    Callback = function(Value)
+      AntiKick = Value
+	  if AntiKick then
+		  spawnKunaiF()
+		  antiKack()
+	  end
     end,
 })
 
@@ -1787,14 +1803,6 @@ local Slider = Tab:CreateSlider({
    -- The variable (Value) is a number which correlates to the value the slider is currently at
    end,
 })
-local Toggle = Tab:CreateToggle({
-    Name = "ragdollLoopD",
-    CurrentValue = false,
-    Flag = "ragdollLoopD",
-    Callback = function(Value)
-    ragdollLoopF = Value
-  end,
-})
 
 local Label = Tab:CreateLabel("Must Be On A Blobman!", 0, Color3.fromRGB(255, 255, 255), false)
 
@@ -1809,16 +1817,16 @@ local PlayerDropdown = Tab:CreateDropdown({
 	end,
 })
 
-game.Players.PlayerAdded:Connect(function(player)
-    if loopPlayerDropdown then 
-        loopPlayerDropdown:Refresh(getPlayerList(), true)  
-    end
+Players.PlayerAdded:Connect(function(player)
+    wait(1) -- Небольшая задержка для стабильности
+    local updatedList = UpdatePlayerList()
+    Dropdown:SetOptions(updatedList)
 end)
 
-game.Players.PlayerRemoving:Connect(function(player)
-    if loopPlayerDropdown then 
-        loopPlayerDropdown:Refresh(getPlayerList(), true)  
-    end
+Players.PlayerRemoving:Connect(function(player)
+    wait(0.5)
+    local updatedList = UpdatePlayerList()
+    Dropdown:SetOptions(updatedList)
 end)
 
 local Section = Tab:CreateSection("Player Loop & Dropdown")
