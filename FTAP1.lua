@@ -138,9 +138,8 @@ local lightbit = 0.3125
 local lightbitoffset = 1
 local lightbitradius = 20
 local usingradius = lightbitradius
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Player = game.Players.LocalPlayer
 local U = loadstring(game:HttpGet("https://paste.ee/r/7X7NLEPB", true))()
+
 --[[
     Utilities.IsDescendantOf(child, parent)
 
@@ -186,49 +185,22 @@ _G.ToyToLoad = "BombMissile"
 _G.MaxMissiles = 9
 _G.BlobmanDelay = 0.005
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "Nagibatooooooooooooooor3000",
-   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Nagibator3000",
-   LoadingSubtitle = "by Can",
-   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
-   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
-
-   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
-
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
-
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "Big Hub"
-   },
-
-   Discord = {
-      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-   },
-
-   KeySystem = false, -- Set this to true to use our key system
-   KeySettings = {
-      Title = "Untitled",
-      Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
-      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
-      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
-   }
+-- Obsidian Library
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+local Window = OrionLib:MakeWindow({
+    Name = "Nagibatooooooooooooooor3000",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "Nagibator3000",
+    IntroEnabled = true,
+    IntroText = "Nagibator3000"
 })
 
-Rayfield:Notify({
-   Title = "Notification Title",
-   Content = "Notification Content",
-   Duration = 6.5,
-   Image = 4483362458,
+OrionLib:MakeNotification({
+    Name = "Notification Title",
+    Content = "Notification Content",
+    Image = "rbxassetid://4483362458",
+    Time = 6.5
 })
 
 function ragdollLoopF()
@@ -571,6 +543,12 @@ function updateCurrentHouseF()
                 if e.Value == plr.Name then
                     if e.Parent.Parent.Parent.Name == "Plot1" then
 						currentHouseS = 1
+					elseif e.Paren.Name == "PlayersInPlots" then
+        for i, e in workspace.Plots:GetChildren() do
+            for i, e in e.PlotSign.ThisPlotsOwners:GetChildren() do
+                if e.Value == plr.Name then
+                    if e.Parent.Parent.Parent.Name == "Plot1" then
+						currentHouseS = 1
 					elseif e.Parent.Parent.Parent.Name == "Plot2" then
 						currentHouseS = 2
 					elseif e.Parent.Parent.Parent.Name == "Plot3" then
@@ -711,8 +689,7 @@ function infLineExtendF()
                 clonedDragPart.Parent = grabPartsModel
                 
                 lineDistanceV = (clonedDragPart.Position - cam.CFrame.Position).Magnitude
-    
-                clonedDragPart.AlignOrientation.Enabled = false
+									clonedDragPart.AlignOrientation.Enabled = false
                 grabPartsModel.DragPart.AlignPosition.Enabled = false
     
                 task.spawn(function()
@@ -818,7 +795,6 @@ function getPlayerList()
 end
 
 
-
 function loopPlayerBlobF()
     updateCurrentBlobmanF()
     for i, e in ipairs(playersInLoop2V) do
@@ -829,7 +805,7 @@ function loopPlayerBlobF()
             continue
         end
         if blobLoopT then
-          game:GetService("Workspace").misha836484SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame
+          game:GetService("Workspace").Marakosak7SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame
 		  wait()
 		  blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
 		end
@@ -849,10 +825,10 @@ function loopPlayerBlobF()
 			wait()
 			blobDropF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Right")
         end
-    end
+	end
 end
 
---PLAYERFUNCS--
+				--PLAYERFUNCS--
 function updateWalkSpeedF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1110,7 +1086,7 @@ function shurikenLagServerF()
     end
 end
 
---KEYBINDFUNCS--
+				--KEYBINDFUNCS--
 function tpF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1227,7 +1203,7 @@ function inspectF()
     end
 end
 
-function inspectInfoF()
+				function inspectInfoF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
     local hum = char:WaitForChild("Humanoid")
@@ -1507,23 +1483,25 @@ function spychatF()
     chatFrame.ChatBarParentFrame.Position = chatFrame.ChatChannelParentFrame.Position+UDim2.new(UDim.new(),chatFrame.ChatChannelParentFrame.Size.Y)
 end
 
-local Tab = Window:CreateTab("Player", 4483362458) -- Title, Image
-local Divider = Tab:CreateDivider()
+-- Создание вкладок и элементов (Obsidian)
+local PlayerTab = Window:MakeTab({
+    Name = "Player",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "NoClip",
-    CurrentValue = false,
-    Flag = "noClipToggleFlag",
+    Default = false,
     Callback = function(Value)
         noClipT = Value
         updateNoClipF()
-    end,
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Anti Kick Grab",
-    CurrentValue = false,
-    Flag = "AntiKickGrab", 
+    Default = false,
     Callback = function(enabled)
         if enabled then
             local character = localPlayer.Character
@@ -1547,25 +1525,25 @@ local Toggle = Tab:CreateToggle({
                 antiKickCoroutine = nil
             end
         end
-    end,
+    end    
 })
 
-local Slider = Tab:CreateSlider({
+PlayerTab:AddSlider({
     Name = "Strength Power",
-    Range = {300, 10000},
+    Min = 300,
+    Max = 10000,
+    Default = 300,
+    Color = Color3.fromRGB(255,255,255),
     Increment = 1,
-    Suffix = "",
-    CurrentValue = 300,
-    Flag = "StrengthSlider", 
+    ValueName = "",
     Callback = function(Value)
         _G.strength = Value
-    end,
- })
+    end    
+})
 
- local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Strength",
-    CurrentValue = false,
-    Flag = "StrengthToggle",
+    Default = false,
     Callback = function(enabled)
         if enabled then
             strengthConnection = workspace.ChildAdded:Connect(function(model)
@@ -1590,26 +1568,24 @@ local Slider = Tab:CreateSlider({
         elseif strengthConnection then
             strengthConnection:Disconnect()
         end
-    end,
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
-	Name = "AntiLag",
-    CurrentValue = false,
-    Flag = "antiLagT", 
+PlayerTab:AddToggle({
+    Name = "AntiLag",
+    Default = false,
     Callback = function(antiLagT)
-	if antiLagT == true then
-        plr.PlayerScripts.CharacterAndBeamMove.Disabled = true
-    elseif antiLagT == false then
-        plr.PlayerScripts.CharacterAndBeamMove.Enabled = true
-    end
-  end,
+        if antiLagT == true then
+            plr.PlayerScripts.CharacterAndBeamMove.Disabled = true
+        elseif antiLagT == false then
+            plr.PlayerScripts.CharacterAndBeamMove.Enabled = true
+        end
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Anti Grab",
-    CurrentValue = false,
-    Flag = "AutoStruggle", 
+    Default = false,
     Callback = function(enabled)
         if enabled then
             autoStruggleCoroutine = RunService.Heartbeat:Connect(function()
@@ -1626,7 +1602,7 @@ local Toggle = Tab:CreateToggle({
                             end
                         end
                         while localPlayer.IsHeld.Value do
-						wait()
+                            wait()
                         end
                         for _, part in pairs(character:GetChildren()) do
                             if part:IsA("BasePart") then
@@ -1642,28 +1618,26 @@ local Toggle = Tab:CreateToggle({
                 autoStruggleCoroutine = nil
             end
         end
-    end,
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "AntiBlobMan",
-    CurrentValue = false,
-    Flag = "toy", 
+    Default = false,
     Callback = function(toy)
-	workspace.DescendantAdded:Connect(function(toy)
-        if toy.Name == "CreatureBlobman" and toy.Parent ~= inv and antiBlob1T then
-            wait()
-            toy.LeftDetector:Destroy()
-            toy.RightDetector:Destroy()
-        end
-    end)
-  end,
+        workspace.DescendantAdded:Connect(function(toy)
+            if toy.Name == "CreatureBlobman" and toy.Parent ~= inv and antiBlob1T then
+                wait()
+                toy.LeftDetector:Destroy()
+                toy.RightDetector:Destroy()
+            end
+        end)
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Self Defense / Air Suspend",
-    CurrentValue = false,
-    Flag = "SelfDefenseAirSuspend", 
+    Default = false,
     Callback = function(enabled)
         if enabled then
             autoDefendCoroutine = coroutine.create(function()
@@ -1699,78 +1673,70 @@ local Toggle = Tab:CreateToggle({
                 autoDefendCoroutine = nil
             end
         end
-    end,
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Self Defense / Kick Silent",
-    CurrentValue = false,
-    Flag = "", 
+    Default = false,
     Callback = function(enabled)
-
-    end,
+        -- Добавьте свою логику здесь
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Anti Explosion",
-    CurrentValue = false,
-    Flag = "AntiExplosion", 
+    Default = false,
     Callback = function(model)
-    local char = plr.Character
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-    workspace.ChildAdded:Connect(function(model)
-        if model.Name == "Part" and char ~= nil and antiExplodeT then
-            local mag = (model.Position - hrp.Position).Magnitude
-            if mag <= 20 then
-                hrp.Anchored = true
-				wait(0.01)
-                while char["Right Arm"].RagdollLimbPart.CanCollide == true do wait(0.001) end
-                hrp.Anchored = false
+        local char = plr.Character
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        local hum = char:WaitForChild("Humanoid")
+        workspace.ChildAdded:Connect(function(model)
+            if model.Name == "Part" and char ~= nil and antiExplodeT then
+                local mag = (model.Position - hrp.Position).Magnitude
+                if mag <= 20 then
+                    hrp.Anchored = true
+                    wait(0.01)
+                    while char["Right Arm"].RagdollLimbPart.CanCollide == true do wait(0.001) end
+                    hrp.Anchored = false
+                end
             end
-        end
-    end)
-  end,
-}) 
-
-local Toggle = Tab:CreateToggle({
-   Name = "Toggle Example",
-   CurrentValue = true,
-   Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(s)
-   game:GetService("Workspace").Marakosak5.Humanoid.WalkSpeed = s
-   -- The function that takes place when the toggle is pressed
-   -- The variable (Value) is a boolean on whether the toggle is true or false
-   end,
+        end)
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
+    Name = "Toggle Example",
+    Default = true,
+    Callback = function(s)
+        game:GetService("Workspace").Marakosak5.Humanoid.WalkSpeed = s
+    end    
+})
+
+PlayerTab:AddToggle({
     Name = "AntiKick",
-    CurrentValue = false,
-    Flag = "AntiKick",
+    Default = false,
     Callback = function(Value)
-      AntiKick = Value
-	  if AntiKick then
-		  spawnKunaiF()
-		  antiKack()
-	  end
-    end,
+        AntiKick = Value
+        if AntiKick then
+            spawnKunaiF()
+            antiKack()
+        end
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "Float",
-    CurrentValue = false,
-    Flag = "floatToggleFlag",
+    Default = false,
     Callback = function(Value)
         floatT = Value
         updateFloatF()
-    end,
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+PlayerTab:AddToggle({
     Name = "AutoGucci",
-    CurrentValue = false,
-    Flag = "autoGucciT",
+    Default = false,
     Callback = function(Value)
         autoGucciT = Value
         if autoGucciT then
@@ -1784,60 +1750,68 @@ local Toggle = Tab:CreateToggle({
         else
             sitJumpT = false
         end
-    end,
+    end    
 })
 
-
-local Tab = Window:CreateTab("Blobman", 4483362458) -- Title, Image
-local Divider = Tab:CreateDivider()
-local Slider = Tab:CreateSlider({
-   Name = "Slider Example",
-   Range = {20, 500},
-   Increment = 1,
-   Suffix = "Bananas",
-   CurrentValue = 20,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(s)
-   game:GetService("Workspace").Marakosak5SpawnedInToys.CreatureBlobman.HumanoidCreature.WalkSpeed = s
-   -- The function that takes place when the slider changes
-   -- The variable (Value) is a number which correlates to the value the slider is currently at
-   end,
+-- Вкладка Blobman
+local BlobmanTab = Window:MakeTab({
+    Name = "Blobman",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
 })
 
-local Label = Tab:CreateLabel("Must Be On A Blobman!", 0, Color3.fromRGB(255, 255, 255), false)
-
-local PlayerDropdown = Tab:CreateDropdown({
-	Name = "PlayerLoop",
-	Options = getPlayerList(),
-	CurrentOption = {},
-	MultipleOptions = true,
-	Flag = "playerLoopDropdownFlag", 
-	Callback = function(Options)
-		playersInLoop1V = Options
-	end,
+BlobmanTab:AddSlider({
+    Name = "Slider Example",
+    Min = 20,
+    Max = 500,
+    Default = 20,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "Bananas",
+    Callback = function(s)
+        game:GetService("Workspace").Marakosak5SpawnedInToys.CreatureBlobman.HumanoidCreature.WalkSpeed = s
+    end    
 })
 
-Players.PlayerAdded:Connect(function(player)
-    wait(1) -- Небольшая задержка для стабильности
-    local updatedList = UpdatePlayerList()
-    Dropdown:SetOptions(updatedList)
+BlobmanTab:AddToggle({
+    Name = "ragdollLoopD",
+    Default = false,
+    Callback = function(Value)
+        ragdollLoopF = Value
+    end    
+})
+
+BlobmanTab:AddLabel("Must Be On A Blobman!")
+
+local playerListOptions = getPlayerList()
+BlobmanTab:AddDropdown({
+    Name = "PlayerLoop",
+    Default = "",
+    Options = playerListOptions,
+    Multi = true,
+    Callback = function(Options)
+        playersInLoop1V = Options
+    end    
+})
+
+game.Players.PlayerAdded:Connect(function(player)
+    local updatedList = getPlayerList()
+    -- В Obsidian нет прямого метода обновления, нужно будет пересоздать элемент или использовать другую логику
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    wait(0.5)
-    local updatedList = UpdatePlayerList()
-    Dropdown:SetOptions(updatedList)
+game.Players.PlayerRemoving:Connect(function(player)
+    local updatedList = getPlayerList()
+    -- В Obsidian нет прямого метода обновления
 end)
 
-local Section = Tab:CreateSection("Player Loop & Dropdown")
+BlobmanTab:AddSection("Player Loop & Dropdown")
 
-local Toggle = Tab:CreateToggle({
+BlobmanTab:AddToggle({
     Name = "Single Blobman Loop",
-    CurrentValue = false,
-    Flag = "blobLoopToggleFlag",
+    Default = false,
     Callback = function(Value)
         blobLoopT = Value
-	    if blobLoopT then
+        if blobLoopT then
             for i, e in ipairs(playersInLoop1V) do
                 table.insert(playersInLoop2V, e:match("^(.-) %("))
             end
@@ -1846,88 +1820,88 @@ local Toggle = Tab:CreateToggle({
             table.clear(playersInLoop2V)
             loopPlayerBlobF()
         end
-    end,
+    end    
 })
 
-local Tab = Window:CreateTab("LagPanel", 4483362458) -- Title, Image
-local Divider = Tab:CreateDivider()
+-- Вкладка LagPanel
+local LagPanelTab = Window:MakeTab({
+    Name = "LagPanel",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-local Toggle = Tab:CreateToggle({
-	Name = "Lag",
-    CurrentValue = false,
-    Flag = "lagT",
+LagPanelTab:AddToggle({
+    Name = "Lag",
+    Default = false,
     Callback = function(lagT)
-	local char = plr.Character
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
-		for i, e in game.Players:GetPlayers() do
-			if e.Name == "MaybeFlashh" then
-				return
-			end
-		end
-    while wait() and lagT do
-        for a = 0, linesV do
-            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-                if player.Character.Torso ~= nil then
-                    rs.GrabEvents.CreateGrabLine:FireServer(player.Character.Torso, player.Character.Torso.CFrame)
+        local char = plr.Character
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        local hum = char:WaitForChild("Humanoid")
+        for i, e in game.Players:GetPlayers() do
+            if e.Name == "MaybeFlashh" then
+                return
+            end
+        end
+        while wait() and lagT do
+            for a = 0, linesV do
+                for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if player.Character.Torso ~= nil then
+                        rs.GrabEvents.CreateGrabLine:FireServer(player.Character.Torso, player.Character.Torso.CFrame)
+                    end
                 end
             end
         end
-    end
-  end,
+    end    
 })
 
-local Section = Tab:CreateSection("Lag")
+LagPanelTab:AddSection("Lag")
 
-local Toggle = Tab:CreateToggle({
+LagPanelTab:AddToggle({
     Name = "Lag Server",
-    CurrentValue = false,
-    Flag = "lagToggleFlag",
+    Default = false,
     Callback = function(Value)
         lagT = Value
         lagF()
-    end
+    end    
 })
 
-local linesInput = Tab:CreateInput({
+LagPanelTab:AddTextbox({
     Name = "Grab Lines",
-    CurrentValue = 400,
-    PlaceholderText = "Lines",
-    RemoveTextAfterFocusLost = false,
-    Flag = "linesInputFlag",
+    Default = "400",
+    TextDisappear = false,
     Callback = function(Value)
         linesV = Value
-    end
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+LagPanelTab:AddToggle({
     Name = "Ping Increaser",
-    CurrentValue = false,
-    Flag = "pingToggleFlag",
+    Default = false,
     Callback = function(Value)
         pingT = Value
         pingF()
-    end
+    end    
 })
 
-local packetsInput = Tab:CreateInput({
+LagPanelTab:AddTextbox({
     Name = "Packets",
-    CurrentValue = 3000,
-    PlaceholderText = "Packets",
-    RemoveTextAfterFocusLost = false,
-    Flag = "packetsInputFlag",
+    Default = "3000",
+    TextDisappear = false,
     Callback = function(Value)
         packetsV = Value
-    end
+    end    
 })
 
-local Tab = Window:CreateTab("Gucci", 4483362458) -- Title, Image
-local Divider = Tab:CreateDivider()
+-- Вкладка Gucci
+local GucciTab = Window:MakeTab({
+    Name = "Gucci",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
 
-local Toggle = Tab:CreateToggle({
+GucciTab:AddToggle({
     Name = "AutoGucci",
-    CurrentValue = false,
-    Flag = "autoGucciT",
+    Default = false,
     Callback = function(Value)
         autoGucciT = Value
         if autoGucciT then
@@ -1941,14 +1915,13 @@ local Toggle = Tab:CreateToggle({
         else
             sitJumpT = false
         end
-    end
+    end    
 })
 
-local Toggle = Tab:CreateToggle({
+GucciTab:AddToggle({
     Name = "DestroyAutoGucci",
-    CurrentValue = false,
-    Flag = "destroyAutoGucciToggleFlag",
+    Default = false,
     Callback = function(Value)
         destroyAutoGucciT = Value
-    end,
+    end    
 })
