@@ -1876,6 +1876,7 @@ local PlayerDropdown = Tab:CreateDropdown({
 	Flag = "playerLoopDropdownFlag", 
 	Callback = function(Options)
 		playersInLoop1V = Options
+		LoopBanana = Options
 	end,
 })
 
@@ -1909,6 +1910,24 @@ local Toggle = Tab:CreateToggle({
             loopPlayerBlobF()
         end
     end,
+})
+
+
+local Toggle = Tab:CreateToggle({
+    Name = "LoopBanana",
+    CurrentValue = false,
+    Flag = "blobLoopToggleFlag",
+    Callback = function(Value)
+        LoopBanana = Value
+    if LoopBanana then      
+    toysFolder.FoodBanana.HoldPart.HoldItemRemoteFunction:InvokeServer(toysFolder.FoodBanana, LocalPlayer.Character)
+    ReplicatedStorage.HoldEvents.Use:FireServer(toysFolder.FoodBanana)
+     
+      while true do
+    toysFolder.FoodBanana.CFrame = player.Character:FindFirstChild("Torso").CFrame
+        end
+    end
+  end,
 })
 
 local Tab = Window:CreateTab("LagPanel", 4483362458) -- Title, Image
