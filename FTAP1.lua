@@ -59,6 +59,9 @@ inv = workspace:WaitForChild(plr.Name.."SpawnedInToys")
 rs = game:GetService("ReplicatedStorage")
 rs2 = game:GetService("RunService")
 deb = game:GetService("Debris")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local toysFolder = game.workspace:FindFirstChild(LocalPlayer.Name.."SpawnedInToys")
+local spawn = workspace.SpawnLocation.CFrame
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
@@ -828,9 +831,12 @@ function loopPlayerBlobF()
             continue
         end
         if blobLoopT then
-          game:GetService("Workspace").misha836484SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame
-		  wait()
-		  blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
+          game:GetService("Workspace").misha836484SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0, 17, 0), Vector3.zero
+		    wait(0.5)
+		    blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
+			wait(0.5)
+			blobDropF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
+			wait(0.5)
 		end
     end
     while task.wait() and blobLoopT do
@@ -844,9 +850,6 @@ function loopPlayerBlobF()
             blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
 			wait()
 			blobDropF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
-			blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Right")
-			wait()
-			blobDropF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Right")
         end
     end
 end
@@ -1348,6 +1351,26 @@ function getBlobmanF()
     end
 end
 
+function spawnMicrophoneF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    local spawnRemote = rs:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+    if spawnRemote then
+        pcall(function()spawnRemote:InvokeServer("InstrumentVoiceMicrophone", hrp.CFrame*CFrame.new(0,0,-5),Vector3.new(0, -15.716, 0))end)
+    end
+end
+
+function spawnGPoopF()
+    local char = plr.Character
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
+    local spawnRemote = rs:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+    if spawnRemote then
+        pcall(function()spawnRemote:InvokeServer("PoopPileSparkle", hrp.CFrame*CFrame.new(0,0,-5),Vector3.new(0, -15.716, 0))end)
+    end
+end
+
 function spawnKunaiF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1642,6 +1665,38 @@ local Toggle = Tab:CreateToggle({
             end
         end
     end,
+})
+
+local Toggle = Tab:CreateToggle({
+    Name = "Anti input lag (Золотая кака)",
+    CurrentValue = false,
+    Flag = "antiinputlag",
+    Callback = function(Value)
+        antiInput = Value
+		if antiInput then
+		    spawnGPoopF()
+			while true do
+		  	toysFolder.PoopPileSparkle.HoldPart.HoldItemRemoteFunction:InvokeServer(toysFolder.PoopPileSparkle, LocalPlayer.Character)
+            toysFolder.PoopPileSparkle.HoldPart.DropItemRemoteFunction:InvokeServer(toysFolder.PoopPileSparkle, LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 10000, 0), Vector3.zero)
+	     end
+		end
+	end,
+})
+
+local Toggle = Tab:CreateToggle({
+    Name = "Anti input lag (Микрофон)",
+    CurrentValue = false,
+    Flag = "antiinputlag",
+    Callback = function(Value)
+        antiInput = Value
+		if antiInput then
+		    spawnMicrophoneF()
+			while true do
+		  	toysFolder.InstrumentVoiceMicrophone.HoldPart.HoldItemRemoteFunction:InvokeServer(toysFolder.InstrumentVoiceMicrophone, LocalPlayer.Character)
+            toysFolder.InstrumentVoiceMicrophone.HoldPart.DropItemRemoteFunction:InvokeServer(toysFolder.InstrumentVoiceMicrophone, LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 10000, 0), Vector3.zero)
+	     end
+		end
+	end,
 })
 
 local Toggle = Tab:CreateToggle({
