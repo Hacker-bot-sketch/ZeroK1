@@ -1922,7 +1922,8 @@ local Toggle = Tab:CreateToggle({
     if LoopBanana then      
     toysFolder.FoodBanana.HoldPart.HoldItemRemoteFunction:InvokeServer(toysFolder.FoodBanana, LocalPlayer.Character)
     ReplicatedStorage.HoldEvents.Use:FireServer(toysFolder.FoodBanana)
-     
+	task.wait(4.5)
+	toysFolder.FoodBanana.HoldPart.DropItemRemoteFunction:InvokeServer(toysFolder.FoodBanana, LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(5, 10, 0), Vector3.zero)
       while true do
     toysFolder.FoodBanana.CFrame = player.Character:FindFirstChild("Torso").CFrame
         end
