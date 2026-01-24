@@ -831,7 +831,7 @@ function loopPlayerBlobF()
             continue
         end
         if blobLoopT then
-          game:GetService("Workspace").misha836484SpawnedInToys.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0, 17, 0), Vector3.zero
+          toysFolder.CreatureBlobman.HumanoidRootPart.CFrame = player.Character:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0, 17, 0), Vector3.zero
 		    wait(0.5)
 		    blobGrabF(currentBlobS, player.Character:WaitForChild("HumanoidRootPart"), "Left")
 			wait(0.5)
@@ -1753,6 +1753,19 @@ local Toggle = Tab:CreateToggle({
                 coroutine.close(autoDefendCoroutine)
                 autoDefendCoroutine = nil
             end
+        end
+    end,
+})
+
+local Toggle = Tab:CreateToggle({
+    Name = "3 лицо",
+    CurrentValue = false,
+    Flag = "view",
+    Callback = function(Value)
+        view = Value
+		if view then
+          game:GetService("Players").LocalPlayer.CameraMaxZoomDistance = 99999
+          game:GetService("Players").LocalPlayer.CameraMode = Enum.CameraMode.Classic
         end
     end,
 })
