@@ -1894,6 +1894,15 @@ local PlayerDropdown = Tab:CreateDropdown({
 	end,
 })
 
+P.PlayerAdded:Connect(function()
+    PlayerDropdown:Refresh(GetPlayerList())
+end)
+
+P.PlayerRemoving:Connect(function()
+    PlayerDropdown:Refresh(GetPlayerList())
+end)
+
+
 game.Players.PlayerAdded:Connect(function(player)
     if loopPlayerDropdown then 
         loopPlayerDropdown:Refresh(getPlayerList(), true)  
