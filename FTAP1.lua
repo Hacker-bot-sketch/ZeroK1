@@ -1474,6 +1474,14 @@ end
 function addToysF()
 end
 
+local function GetPlayerList()
+    local list = {}
+    for _, player in pairs(P:GetPlayers()) do
+            table.insert(list, player.DisplayName .. " (" .. player.Name .. ")")
+    end
+    return list
+end
+
 --CHATFUNCS--
 function spychatF()
     local char = plr.Character
@@ -1883,23 +1891,23 @@ local Toggle = Tab:CreateToggle({
 local Label = Tab:CreateLabel("Must Be On A Blobman!", 0, Color3.fromRGB(255, 255, 255), false)
 
 local PlayerDropdown = Tab:CreateDropdown({
-	Name = "PlayerLoop",
-	Options = getPlayerList(),
-	CurrentOption = {},
-	MultipleOptions = true,
+    Name = "Set Target",
+    Options = GetPlayerList(),
+    CurrentOption = {},
+    MultipleOptions = false,
 	Flag = "playerLoopDropdownFlag", 
-	Callback = function(Options)
-		playersInLoop1V = Options
+    Callback = function(Options)
+        playersInLoop1V = Options
 		LoopBanana = Options
-	end,
+    end,
 })
 
-game.Players.PlayerAdded:Connect(function(player)
-    PlayerDropdown:Refresh(GetPlayerList(getPlayerList))
+P.PlayerAdded:Connect(function()
+    PlayerDropdown:Refresh(GetPlayerList())
 end)
 
-game.Players.PlayerRemoving:Connect(function(player)
-    PlayerDropdown:Refresh(GetPlayerList(getPlayerList))
+P.PlayerRemoving:Connect(function()
+    PlayerDropdown:Refresh(GetPlayerList())
 end)
 
 local Section = Tab:CreateSection("Player Loop & Dropdown")
