@@ -1371,16 +1371,17 @@ function spawnGPoopF()
     end
 end
 
-function spawnKunaiF()
+function spawnShurikenF()
     local char = plr.Character
     local hrp = char:WaitForChild("HumanoidRootPart")
     local hum = char:WaitForChild("Humanoid")
     local spawnRemote = rs:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
     if spawnRemote then
-        pcall(function()spawnRemote:InvokeServer("NinjaKunai", hrp.CFrame*CFrame.new(0,0,-5),Vector3.new(0, -15.716, 0))end)
+        pcall(function()spawnRemote:InvokeServer("NinjaShuriken", hrp.CFrame*CFrame.new(0,0,-5),Vector3.new(0, -15.716, 0))end)
         task.wait()
     end
 end
+
 
 function spawnBlobmanF()
     local char = plr.Character
@@ -1805,9 +1806,9 @@ local Toggle = Tab:CreateToggle({
     Callback = function(Value)
       AntiKick = Value
 	  if AntiKick then
-		  spawnKunaiF()
-		  antiKack()
-	  end
+		  spawnShurikenF()
+          game.ReplicatedStorage.PlayerEvents:WaitForChild("StickyPartEvent"):FireServer(toysFolder.NinjaShuriken.StickyPart,LocalPlayer.Character.HumanoidRootPart.FirePlayerPart,CFrame.Angles(math.rad(90), math.rad(90), 0))
+	  end	     
     end,
 })
 
