@@ -1894,25 +1894,12 @@ local PlayerDropdown = Tab:CreateDropdown({
 	end,
 })
 
-P.PlayerAdded:Connect(function()
-    PlayerDropdown:Refresh(GetPlayerList())
-end)
-
-P.PlayerRemoving:Connect(function()
-    PlayerDropdown:Refresh(GetPlayerList())
-end)
-
-
 game.Players.PlayerAdded:Connect(function(player)
-    if loopPlayerDropdown then 
-        loopPlayerDropdown:Refresh(getPlayerList(), true)  
-    end
+    PlayerDropdown:Refresh(GetPlayerList())
 end)
 
 game.Players.PlayerRemoving:Connect(function(player)
-    if loopPlayerDropdown then 
-        loopPlayerDropdown:Refresh(getPlayerList(), true)  
-    end
+    PlayerDropdown:Refresh(GetPlayerList())
 end)
 
 local Section = Tab:CreateSection("Player Loop & Dropdown")
