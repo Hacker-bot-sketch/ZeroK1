@@ -1076,7 +1076,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 						end
 					else
 						local lockCFrame =
-                            CFrame.new(savedPos.Position + Vector3.new(0, 7, 0)) *
+                            CFrame.new(savedPos.Position + Vector3.new(0, 20, 0)) *
                             CFrame.Angles(
                                 math.rad(math.random(-180, 180)),
                                 math.rad(math.random(-180, 180)),
