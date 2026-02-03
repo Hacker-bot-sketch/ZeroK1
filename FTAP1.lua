@@ -1069,20 +1069,15 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 						if grabStart == 0 then
 							grabStart = tick()
 						end
-						if tick() - grabStart > 0.15 then
+						if tick() - grabStart > 0.2 then
 							dragging = true
 							grabStart = 0
 							myRoot.CFrame = savedPos
 						end
 					else
 						local lockCFrame =
-                            CFrame.new(savedPos.Position + Vector3.new(0, 20, 0)) *
-                            CFrame.Angles(
-                                math.rad(math.random(-180, 180)),
-                                math.rad(math.random(-180, 180)),
-                                math.rad(math.random(-180, 180))
-                            )
-						tRoot.CFrame = tRoot.CFrame:Lerp(lockCFrame, 0.2)
+                            CFrame.new(savedPos.Position + Vector3.new(0, 17, 0))
+						tRoot.CFrame = tRoot.CFrame:Lerp(lockCFrame, 0.17)
 						tRoot.Velocity = Vector3.zero
 						tRoot.RotVelocity = Vector3.zero
 						pcall(function()
@@ -1197,6 +1192,83 @@ TargetGroup:AddToggle("DualHandLoopKick", {
 		end
 	end
 })
+
+local loopKickDualActive = false
+TargetGroup:AddToggle("DualHandLoopKick", {
+	Text = "Lock",
+	Default = false,
+	Callback = function(on)
+		loopKickDualActive = on
+		if on then
+			if not selectedKickPlayer then
+				notify("Error", "Select target first", 3)
+				Toggles.DualHandLoopKick:SetValue(false)
+				return
+			end
+			task.spawn(function()
+				local lastTargetCharDual = nil
+				local bp = nil
+				while loopKickDualActive do
+					local target = selectedKickPlayer
+					local char = Player.Character
+					local hum = char and char:FindFirstChild("Humanoid")
+					local seat = hum and hum.SeatPart
+					if not seat or not target or not target.Parent then
+						task.wait(0.5)
+						continue
+					end
+					local seatParent = seat.Parent
+					local grab = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureGrab")
+					local drop = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureDrop")
+					if not grab or not drop then
+						task.wait(0.5)
+						continue
+					end
+					local leftDet = seatParent:FindFirstChild("LeftDetector")
+					local rightDet = seatParent:FindFirstChild("RightDetector")
+					local leftWeld = leftDet and leftDet:FindFirstChild("LeftWeld")
+					local rightWeld = rightDet and rightDet:FindFirstChild("RightWeld")
+					local hrp = char:FindFirstChild("HumanoidRootPart")
+					local targetChar = target.Character
+					local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+					local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+					if targetHRP and targetHum and targetHum.Health > 0 then
+						if targetChar ~= lastTargetCharDual then
+							lastTargetCharDual = targetChar
+							if bp then
+								bp:Destroy()
+								bp = nil
+							end
+							if hrp then
+								hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
+							end
+							bp = Instance.new("BodyPosition")
+							bp.Position = Vector3.new(0, 2, 0)
+							bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+							bp.Parent = targetHRP
+						end
+						wait()
+						grab:FireServer(leftDet, targetHRP, leftWeld)
+						drop:FireServer(leftWeld, targetHRP)
+						grab:FireServer(leftDet, targetHRP, leftWeld)
+						drop:FireServer(leftWeld, targetHRP)
+						grab:FireServer(leftDet, targetHRP, leftWeld)
+						drop:FireServer(leftWeld, targetHRP)
+						grab:FireServer(leftDet, targetHRP, leftWeld)
+						drop:FireServer(leftWeld, targetHRP)
+					else
+					end
+				end
+				if bp then
+					bp:Destroy()
+				end
+			end)
+		else
+			loopKickDualActive = false
+		end
+	end
+})
+	
 game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode.T and _G.AutoSitBlobT then
 		local plr = game.Players.LocalPlayer
