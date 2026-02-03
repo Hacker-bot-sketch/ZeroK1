@@ -1939,7 +1939,7 @@ local function AddBoxESP(obj)
 	box.Adornee = obj
 	box.AlwaysOnTop = true
 	box.ZIndex = 5
-	box.Color3 = Color3.fromRGB(255, 255, 255)
+	box.Color3 = Color3.fromRGB(170, 38, 71)
 	box.Transparency = 0.5
 	box.Size = obj.Size
 	box.Parent = game.CoreGui
