@@ -1024,7 +1024,7 @@ TargetGroup:AddButton({
 	end
 })
 TargetGroup:AddToggle("LoopKickGrabToggle", {
-	Text = "Kick (ragdoll grab)",
+	Text = "Kick (Spam) Old",
 	Default = false,
 	Callback = function(on)
 		kickLoopEnabled = on
@@ -1054,6 +1054,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 				local tChar = target.Character
 				local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
 				local tHum = tChar and tChar:FindFirstChild("Humanoid")
+				local targetHead = workspace:WaitForChild("Marakosak5"):FindFirstChild("Head")
 				if tRoot and tHum and tHum.Health > 0 then
 					tRoot.AssemblyLinearVelocity = Vector3.zero
 					tRoot.AssemblyAngularVelocity = Vector3.zero
@@ -1069,15 +1070,20 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 						if grabStart == 0 then
 							grabStart = tick()
 						end
-						if tick() - grabStart > 0.2 then
+						if tick() - grabStart > 0.3 then
 							dragging = true
 							grabStart = 0
 							myRoot.CFrame = savedPos
 						end
 					else
-						local lockCFrame =
-                            CFrame.new(savedPos.Position + Vector3.new(0, 17, 0))
-						tRoot.CFrame = tRoot.CFrame:Lerp(lockCFrame, 0.17)
+                        local targetPosition = targetHead.Position + Vector3.new(0, 15, 0)
+						local lockCFrame = CFrame.new(targetPosition) *
+                            CFrame.Angles(
+                                math.rad(math.random(-180, 180)),
+                                math.rad(math.random(-180, 180)),
+                                math.rad(math.random(-180, 180))
+                            )
+						tRoot.CFrame = tRoot.CFrame:Lerp(lockCFrame, 0.3)
 						tRoot.Velocity = Vector3.zero
 						tRoot.RotVelocity = Vector3.zero
 						pcall(function()
@@ -1103,6 +1109,90 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 		end)
 	end
 })
+
+TargetGroup:AddToggle("LoopKickGrabToggle", {
+	Text = "Kick (Spam) New",
+	Default = false,
+	Callback = function(on)
+		kickLoopEnabled = on
+		if not on then
+			return
+		end
+		task.spawn(function()
+			local Players = game:GetService("Players")
+			local RS = game:GetService("ReplicatedStorage")
+			local RunService = game:GetService("RunService")
+			local Player = Players.LocalPlayer
+			local GE = RS:WaitForChild("GrabEvents")
+			local Character = Player.Character or Player.CharacterAdded:Wait()
+			local myRoot = Character:FindFirstChild("HumanoidRootPart")
+			if not myRoot then
+				Toggles.LoopKickGrabToggle:SetValue(false)
+				return
+			end
+			local savedPos = myRoot.CFrame
+			local dragging = false
+			local grabStart = 0
+			while kickLoopEnabled do
+				local target = selectedKickPlayer
+				if not target or not target.Parent then
+					break
+				end
+				local tChar = target.Character
+				local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+				local tHum = tChar and tChar:FindFirstChild("Humanoid")
+				local targetHead = workspace:WaitForChild("Marakosak5"):FindFirstChild("Head")
+				if tRoot and tHum and tHum.Health > 0 then
+					tRoot.AssemblyLinearVelocity = Vector3.zero
+					tRoot.AssemblyAngularVelocity = Vector3.zero
+					tRoot.Velocity = Vector3.zero
+					if not dragging then
+						myRoot.CFrame = tRoot.CFrame
+						pcall(function()
+							tHum.PlatformStand = true
+							tHum.Sit = true
+							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
+							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+						end)
+						if grabStart == 0 then
+							grabStart = tick()
+						end
+						if tick() - grabStart > 0.2 then
+							dragging = true
+							grabStart = 0
+							myRoot.CFrame = savedPos
+						end
+					else
+						local targetPosition = targetHead.Position + Vector3.new(0, 15, 0)
+						local lockCFrame = CFrame.new(targetPosition)
+                        tRoot.CFrame = tRoot.CFrame:Lerp(lockCFrame, 0.4)
+						tRoot.Velocity = Vector3.zero
+						tRoot.RotVelocity = Vector3.zero
+						pcall(function()
+							tHum.PlatformStand = true
+							tHum.Sit = false
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.DestroyGrabLine:FireServer(tRoot)
+							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+						end)
+					end
+				else
+					dragging = false
+					grabStart = 0
+				end
+				RunService.Heartbeat:Wait()
+			end
+			if myRoot then
+				myRoot.CFrame = savedPos
+				myRoot.Velocity = Vector3.zero
+			end
+			kickLoopEnabled = false
+			Toggles.LoopKickGrabToggle:SetValue(false)
+		end)
+	end
+})
+
+
 local loopKickDualActive = false
 TargetGroup:AddToggle("DualHandLoopKick", {
 	Text = "Loop Kick",
