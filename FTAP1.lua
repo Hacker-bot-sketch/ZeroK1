@@ -703,86 +703,90 @@ DefenseExtra:AddDropdown("AntiInputLagToy", {
 
 --// TOGGLE
 DefenseExtra:AddToggle("AntiInputLag", {
-	Text = "Anti Input Lag",
-	Default = false,
-	Callback = function(Value)
-		_G.AntiInputLag = Value
-		if Value then
-			task.spawn(function()
-				local Players = game:GetService("Players")
-				local ReplicatedStorage = game:GetService("ReplicatedStorage")
-				local Workspace = game:GetService("Workspace")
-				local RunService = game:GetService("RunService")
-				local plr = Players.LocalPlayer
-				local char = plr.Character or plr.CharacterAdded:Wait()
-				local hrp = char:WaitForChild("HumanoidRootPart")
-				local SpawnRemote =
-                    ReplicatedStorage:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
-				while _G.AntiInputLag do
-                    -- Проверяем папку с игрушками игрока
-					local toysFolder = Workspace:FindFirstChild(plr.Name .. "SpawnedInToys")
-					if not toysFolder then
-						task.wait(0.1)
-						continue
-					end
-					local toy = toysFolder:FindFirstChild(SelectedToy)
+    Text = "Anti Input Lag (Fast & Smooth)",
+    Default = false,
+    Callback = function(Value)
+        _G.AntiInputLag = Value
 
-                    -- Спавним игрушку если её нет
-					if not toy then
-						pcall(function()
-							SpawnRemote:InvokeServer(
-                                SelectedToy,
-                                hrp.CFrame * CFrame.new(0, 5, 0),
-                                Vector3.zero
-                            )
-						end)
+        local RunService = game:GetService("RunService")
+        local Players = game:GetService("Players")
+        local RS = game:GetService("ReplicatedStorage")
+        local Workspace = game:GetService("Workspace")
 
-                        -- Ждём пока игрушка появится
-						local t0 = tick()
-						repeat
-							RunService.Heartbeat:Wait()
-							toysFolder = Workspace:FindFirstChild(plr.Name .. "SpawnedInToys")
-							toy = toysFolder and toysFolder:FindFirstChild(SelectedToy)
-						until toy or tick() - t0 > 1 or not _G.AntiInputLag
-					end-- Работа с HoldPart
-					if toy and toy.Parent then
-						local holdPart = toy:FindFirstChild("HoldPart")
-						if holdPart then
-							local holdingPlayer = holdPart:FindFirstChild("HoldingPlayer")
-							holdingPlayer = holdingPlayer and holdingPlayer.Value
-							if holdingPlayer and holdingPlayer ~= plr then
-                                -- Другой игрок держит – дропаем
-								pcall(function()
-									holdPart.DropItemRemoteFunction:InvokeServer(
-                                        toy,
-                                        hrp.CFrame * CFrame.new(0, 2000, 0),
-                                        Vector3.zero
-                                    )
-								end)
-								toy:Destroy()
-							else
-                                -- Держим игрушку
-								pcall(function()
-									holdPart.HoldItemRemoteFunction:InvokeServer(toy, char)
-								end)
-								task.wait(0.05)
-                                -- Дропаем для ресета
-								pcall(function()
-									holdPart.DropItemRemoteFunction:InvokeServer(
-                                        toy,
-                                        hrp.CFrame * CFrame.new(0, 90000000, 0),
-                                        Vector3.zero
-                                    )
-								end)
-								task.wait(0.01)
-							end
-						end
-					end
-					RunService.Heartbeat:Wait()
-				end
-			end)
-		end
-	end
+        local player = Players.LocalPlayer
+
+        if not Value then
+            if _G.AIL_Conn then
+                _G.AIL_Conn:Disconnect()
+                _G.AIL_Conn = nil
+            end
+            return
+        end
+
+        task.spawn(function()
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+
+            if not SelectedToy then
+                warn("AntiInputLag: SelectedToy nil")
+                return
+            end
+
+            local MenuToys = RS:WaitForChild("MenuToys")
+            local SpawnRemote = MenuToys:WaitForChild("SpawnToyRemoteFunction")
+            local GrabEvents = RS:WaitForChild("GrabEvents")
+            local SetOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+
+            local toysFolder = Workspace:WaitForChild(player.Name .. "SpawnedInToys")
+            local toy = toysFolder:FindFirstChild(SelectedToy)
+
+            if not toy then
+                pcall(function()
+                    SpawnRemote:InvokeServer(
+                        SelectedToy,
+                        hrp.CFrame * CFrame.new(0, 3, 0),
+                        Vector3.zero
+                    )
+                end)
+                toy = toysFolder:WaitForChild(SelectedToy, 2)
+            end
+            if not toy then return end
+
+            local holdPart = toy:WaitForChild("HoldPart")
+            local HoldRemote = holdPart:WaitForChild("HoldItemRemoteFunction")
+            local DropRemote = holdPart:WaitForChild("DropItemRemoteFunction")
+
+            local basePart = toy.PrimaryPart or toy:FindFirstChildWhichIsA("BasePart")
+            if not basePart then return end
+            
+			local Spawn = workspace.SpawnLocation
+            local SEND_INTERVAL = 0.0787
+            local BURST = 1
+            local acc = 0
+
+            _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
+                if not _G.AntiInputLag or not toy or not toy.Parent then return end
+
+                acc += dt
+                if acc < SEND_INTERVAL then return end
+                acc = 0
+
+                pcall(function()
+                    SetOwner:FireServer(basePart, basePart.CFrame)
+                end)
+
+                local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
+                for i = 1, BURST do
+                    pcall(function()
+                        HoldRemote:InvokeServer(toy, char)
+                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
+                    end)
+                end
+                basePart.AssemblyLinearVelocity = Vector3.zero
+                basePart.AssemblyAngularVelocity = Vector3.zero
+            end)
+        end)
+    end
 })
 local tpActive = false
 DefenseExtra:AddToggle("ShurikenAntiKick", {
