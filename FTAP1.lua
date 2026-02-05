@@ -703,7 +703,7 @@ DefenseExtra:AddDropdown("AntiInputLagToy", {
 
 --// TOGGLE
 DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag (Fast & Smooth)",
+    Text = "Anti Input Lag ",
     Default = false,
     Callback = function(Value)
         _G.AntiInputLag = Value
