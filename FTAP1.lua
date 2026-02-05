@@ -1023,6 +1023,7 @@ TargetGroup:AddButton({
 		selectedKickPlayer = nil
 	end
 })
+local LocalPlayer = game:GetService("Players").LocalPlayer
 
 TargetGroup:AddToggle("LoopKickGrabToggle", {
   Text = "Kick (Spam) New",
@@ -1057,7 +1058,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
         local tChar = target.Character
         local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
         local tHum = tChar and tChar:FindFirstChild("Humanoid")
-        local targetHead = workspace:WaitForChild("Marakosak5"):FindFirstChild("Head")
+        local targetHead = LocalPlayer.Character.Head
 
         if tRoot and tHum and tHum.Health > 0 then
           tRoot.AssemblyLinearVelocity = Vector3.zero
