@@ -760,15 +760,13 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.0787
-            local BURST = 1
             local acc = 0
 
             _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < SEND_INTERVAL then return end
+                if acc < 0.0787 then return end
                 acc = 0
 
                 pcall(function()
@@ -776,7 +774,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 end)
 
                 local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
-                for i = 1, BURST do
+                for i = 1, 1 do
                     pcall(function()
                         HoldRemote:InvokeServer(toy, char)
                         DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
@@ -919,7 +917,7 @@ DefenseExtra:AddToggle("ShurikenAntiKick", {
 					return nil
 				end
 				while _G.ShurikenAntiKick do
-					task.wait(0.005)
+					task.wait(0.03)
 					if not plr.Character or not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then
 						continue
 					end
@@ -1976,7 +1974,7 @@ local function AddBoxESP(obj)
 	box.Adornee = obj
 	box.AlwaysOnTop = true
 	box.ZIndex = 5
-	box.Color3 = Color3.fromRGB(170, 38, 71)
+	box.Color3 = Color3.fromRGB(165, 63, 63)
 	box.Transparency = 0.5
 	box.Size = obj.Size
 	box.Parent = game.CoreGui
