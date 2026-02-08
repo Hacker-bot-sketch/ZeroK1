@@ -1080,7 +1080,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end)
                         if grabStart == 0 then
                             grabStart = tick()
-                        elseif tick() - grabStart > 0.08 then
+                        elseif tick() - grabStart > 0.1 then
                             dragging = true
                             grabStart = 0
                             myRoot.CFrame = savedPos
@@ -1094,7 +1094,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyPosition.Position = targetPosition
                         bodyPosition.P = 12000
-                        bodyPosition.D = 1000
+                        bodyPosition.D = 500
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
@@ -1102,12 +1102,15 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
                         bodyGyro.P = 7000
-                        bodyGyro.D = 500
+                        bodyGyro.D = 700
                         pcall(function()
                             tHum.PlatformStand = true
                             tHum.Sit = true
                             GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
                             GE.DestroyGrabLine:FireServer(tRoot)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, true)
+							GE.DestroyGrabLine:FireServer(tRoot)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, true)
                             GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
                         end)
                     end
@@ -1128,7 +1131,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
         end)
     end
 })
-
 local loopKickDualActive = false
 TargetGroup:AddToggle("DualHandLoopKick", {
 	Text = "Loop Kick",
