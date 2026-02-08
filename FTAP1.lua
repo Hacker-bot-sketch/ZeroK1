@@ -1098,7 +1098,6 @@ while kickLoopEnabled do
           bodyGyro.CFrame = tRoot.CFrame  
           bodyGyro.Parent = tRoot  
         end  
-		while true do
         bodyPosition.Position = targetPosition  
         bodyGyro.CFrame = lockCFrame  
         pcall(function()  
@@ -1108,7 +1107,6 @@ while kickLoopEnabled do
           GE.DestroyGrabLine:FireServer(tRoot)  
           GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)  
         end)
-		end
       end  
     else  
       dragging = false  
