@@ -1028,14 +1028,6 @@ TargetGroup:AddButton({
 		selectedKickPlayer = nil
 	end
 })
-
-local Players = game:GetService("Players")
-local RS = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-
-local LocalPlayer = Players.LocalPlayer
-local GE = RS:WaitForChild("GrabEvents")
-
 TargetGroup:AddToggle("LoopKickGrabToggle", {
     Text = "Kick (Spam) New",
     Default = false,
