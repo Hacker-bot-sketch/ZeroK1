@@ -1101,14 +1101,14 @@ while kickLoopEnabled do
 		while true do
         bodyPosition.Position = targetPosition  
         bodyGyro.CFrame = lockCFrame  
-		end
         pcall(function()  
           tHum.PlatformStand = true  
           tHum.Sit = false  
           GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)  
           GE.DestroyGrabLine:FireServer(tRoot)  
           GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)  
-        end)  
+        end)
+		end
       end  
     else  
       dragging = false  
