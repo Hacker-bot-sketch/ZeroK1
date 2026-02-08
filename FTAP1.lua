@@ -1077,7 +1077,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             if grabStart == 0 then
               grabStart = tick()
             end
-            if tick() - grabStart > 0.10 then
+            if tick() - grabStart > 0.35 then
               dragging = true
               grabStart = 0
               myRoot.CFrame = savedPos
