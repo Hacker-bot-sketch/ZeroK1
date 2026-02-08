@@ -1028,6 +1028,7 @@ TargetGroup:AddButton({
 		selectedKickPlayer = nil
 	end
 })
+
 TargetGroup:AddToggle("LoopKickGrabToggle", {
     Text = "Kick (Spam) New",
     Default = false,
