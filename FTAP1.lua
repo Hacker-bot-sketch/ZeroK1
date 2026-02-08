@@ -1041,9 +1041,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             local RunService = game:GetService("RunService")
             local Player = Players.LocalPlayer
             local GE = RS:WaitForChild("GrabEvents")
-            local Character = Player.Character
-			 if not Character then
-				RunService.Heartbeat:Wait()
+            local Character = Player.Character or Player.CharacterAdded:Wait()
             local myRoot = Character:WaitForChild("HumanoidRootPart")
             local savedPos = myRoot.CFrame
             local dragging = false
@@ -1051,14 +1049,11 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             local bodyPosition, bodyGyro
             while kickLoopEnabled do
                 local target = selectedKickPlayer
-                if not target or not target.Parent then 
-					RunService.Heartbeat:Wait()
-					continue
-				end
+                if not target or not target.Parent then break end
                 local tChar = target.Character
                 local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
                 local tHum  = tChar and tChar:FindFirstChild("Humanoid")
-                local tHead = Player.Character and Player.Character:FindFirstChild("Head")
+                local tHead = LocalPlayer.Character.Head
                 if tRoot and tHum and tHead and tHum.Health > 0 then
                     tRoot.AssemblyLinearVelocity = Vector3.zero
                     tRoot.AssemblyAngularVelocity = Vector3.zero
