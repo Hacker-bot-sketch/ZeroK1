@@ -311,63 +311,69 @@ local function antiGrabReconnect()
 	end)
 end
 local autoStruggleConn = nil
+
 DefenseGroup:AddToggle("AntiGrabObsidian", {
-	Text = "Anti Grab",
-	Default = false,
-	Callback = function(Value)
-		local RunService = game:GetService("RunService")
-		local ReplicatedStorage = game:GetService("ReplicatedStorage")
-		local localPlayer = game:GetService("Players").LocalPlayer
-		local Struggle = ReplicatedStorage:FindFirstChild("CharacterEvents") and ReplicatedStorage.CharacterEvents:FindFirstChild("Struggle")
-		if Value then
-			if autoStruggleConn then
-				autoStruggleConn:Disconnect()
-			end
-			autoStruggleConn = RunService.Heartbeat:Connect(function()
-				local character = localPlayer.Character
-				if character and character:FindFirstChild("Head") then
-					local head = character.Head
-					if head:FindFirstChild("PartOwner") then
-						task.spawn(function()
-							if Struggle then
-								Struggle:FireServer(localPlayer)
-							end
-							pcall(function()
-								ReplicatedStorage.GameCorrectionEvents.StopAllVelocity:FireServer()
-							end)
-							for _, part in pairs(character:GetChildren()) do
-								if part:IsA("BasePart") then
-									part.Anchored = true
-								end
-							end
-							local isHeld = localPlayer:FindFirstChild("IsHeld")
-							while isHeld and isHeld.Value do
-								task.wait()
-							end
-							for _, part in pairs(character:GetChildren()) do
-								if part:IsA("BasePart") then
-									part.Anchored = false
-								end
-							end
-						end)
-					end
-				end
-			end)
-		else
-			if autoStruggleConn then
-				autoStruggleConn:Disconnect()
-				autoStruggleConn = nil
-			end
-			local char = localPlayer.Character
-			if char then
-				for _, part in pairs(char:GetChildren()) do
-					if part:IsA("BasePart") then
-						part.Anchored = false
-					end
-				end
-			end
-		end
-	end
+    Text = "Anti Grab",
+    Default = false,
+    Callback = function(Value)
+        local RunService = game:GetService("RunService")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local localPlayer = game:GetService("Players").LocalPlayer
+        local CharacterEvents = ReplicatedStorage:FindFirstChild("CharacterEvents")
+        local Struggle = CharacterEvents and CharacterEvents:FindFirstChild("Struggle")
+
+        if autoStruggleConn then
+            autoStruggleConn:Disconnect()
+        end
+
+        if Value then
+            autoStruggleConn = RunService.Heartbeat:Connect(function()
+                local character = localPlayer.Character
+                if character and character:FindFirstChild("Head") then
+                    local head = character.Head
+                    if head:FindFirstChild("PartOwner") then
+                        task.spawn(function()
+                            if Struggle then
+                                pcall(function()
+                                    Struggle:FireServer(localPlayer)
+                                end)
+                            end
+
+                            pcall(function()
+                                ReplicatedStorage.GameCorrectionEvents.StopAllVelocity:FireServer()
+                            end)
+
+                            for _, part in pairs(character:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    part.Anchored = true
+                                end
+                            end
+
+                            local isHeld = localPlayer:FindFirstChild("IsHeld")
+                            while isHeld and isHeld.Value do
+                                task.wait()
+                            end
+
+                            for _, part in pairs(character:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    part.Anchored = false
+                                end
+                            end
+                        end)
+                    end
+                end
+            end)
+        else
+            local char = localPlayer.Character
+            if char then
+                for _, part in pairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Anchored = false
+                    end
+                end
+            end
+        end
+    end
 })
 local antiBlob1T = false
 local function antiBlob1F()
@@ -482,8 +488,8 @@ DefenseGroup:AddToggle("AntiBurnToggle", {
 	end
 })
 local antiVoidConn
-local VOID_THRESHOLD = -50
-local SAFE_HEIGHT = 100
+local VOID_THRESHOLD = -500
+local SAFE_HEIGHT = 0
 DefenseGroup:AddToggle("AntiVoidToggle", {
 	Text = "Anti Void",
 	Default = false,
@@ -695,6 +701,7 @@ table.sort(DropdownValues)
 local SelectedToy = ToyList[DropdownValues[1]]
 
 --// DROPDOWN
+
 DefenseExtra:AddDropdown("AntiInputLagToy", {
 	Text = "Input Lag Item",
 	Values = DropdownValues,
@@ -704,9 +711,8 @@ DefenseExtra:AddDropdown("AntiInputLagToy", {
 	end
 })
 
---// TOGGLE
 DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag",
+    Text = "Anti Input Lag (resonanse)",
     Default = false,
     Callback = function(Value)
         _G.AntiInputLag = Value
@@ -763,13 +769,15 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
+            local SEND_INTERVAL = 0.0791
+            local BURST = 1
             local acc = 0
 
             _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < 0.0791 then return end
+                if acc < SEND_INTERVAL then return end
                 acc = 0
 
                 pcall(function()
@@ -777,7 +785,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 end)
 
                 local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
-                for i = 1, 1 do
+                for i = 1, BURST do
                     pcall(function()
                         HoldRemote:InvokeServer(toy, char)
                         DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
@@ -859,7 +867,10 @@ DefenseExtra:AddToggle("ShurikenAntiKick", {
 							setOwner:FireServer(kunai.SoundPart, kunai.SoundPart.CFrame)
 						end
 					end
-					local firePart = currentHRP:FindFirstChild("FirePlayerPart") or currentHRP:WaitForChild("FirePlayerPart", 5)
+					local firePart = currentHRP:FindFirstChild("FirePlayerPart")
+                    if not firePart then 
+					    return 
+					end
 					if firePart then
 						stickyEvent:FireServer(
 								kunai.StickyPart,
@@ -965,7 +976,7 @@ DefenseExtra:AddToggle("ShurikenAntiKick", {
 							or not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") 
 							or not kunai:FindFirstChild("StickyPart") 
 							or (plr.Character.HumanoidRootPart.Position - kunai.StickyPart.Position).Magnitude >= 20
-					if not kunai or not kunai:FindFirstChild("StickyPart") or not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or (plr.Character.HumanoidRootPart.Position - kunai.StickyPart.Position).Magnitude >= 20 then
+					if not kunai or not kunai:FindFirstChild("StickyPart") or not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or (plr.Character.HumanoidRootPart.Position - kunai.StickyPart.Position).Magnitude >= 28 then
 						ClearKunai()
 					end
 					pcall(function()
@@ -984,6 +995,7 @@ DefenseExtra:AddToggle("ShurikenAntiKick", {
 		end
 	end
 })
+
 local TargetGroup = Tabs.Target:AddLeftGroupbox("Target Interaction")
 local BlobGroup = Tabs.Target:AddRightGroupbox("Blobman Kick")
 local WhitelistGroup = Tabs.Target:AddRightGroupbox("whitelist")
@@ -1016,7 +1028,7 @@ TargetGroup:AddDropdown("KickPlayerDropdown", {
 	Default = 1,
 	Multi = false,
 	Text = "select player for kick",
-	Calback = function(Value)
+	Callback = function(Value)
 		selectedKickPlayer = getPlayerFromSelection(Value)
 	end,
 })
@@ -1142,6 +1154,7 @@ TargetGroup:AddToggle("DualHandLoopKick", {
 						continue
 					end
 					local seatParent = seat.Parent
+					local release = blobmanScript:FindFirstChild("CreatureRelease")
 					local grab = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureGrab")
 					local drop = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureDrop")
 					if not grab or not drop then
@@ -1183,15 +1196,15 @@ TargetGroup:AddToggle("DualHandLoopKick", {
 						task.wait()
 						drop:FireServer(leftWeld, targetHRP)
 						task.wait()
-						grab:FireServer(rightDet, targetHRP, rightWeld)
-						task.wait()
-						drop:FireServer(rightWeld, targetHRP)
-						task.wait()
-						grab:FireServer(leftDet, targetHRP, leftWeld)
-						grab:FireServer(rightDet, targetHRP, rightWeld)
+						grab:FireServer(leftDet, targetHRP, rightWeld)
 						task.wait()
 						drop:FireServer(leftWeld, targetHRP)
-						drop:FireServer(rightWeld, targetHRP)
+						task.wait()
+						grab:FireServer(leftDet, targetHRP, leftWeld)
+						grab:FireServer(leftDet, targetHRP, rightWeld)
+						task.wait()
+						drop:FireServer(leftWeld, targetHRP)
+						drop:FireServer(leftWeld, targetHRP)
 						task.wait()
 					else
 						task.wait(0.1)
@@ -1207,123 +1220,104 @@ TargetGroup:AddToggle("DualHandLoopKick", {
 	end
 })
 
+local players = game:GetService("Players")
+local rs = game:GetService("ReplicatedStorage")
+local grabRemote = rs.GrabEvents.SetNetworkOwner
+local spawnRemote = rs.MenuToys.SpawnToyRemoteFunction
+
 local loopKickDualActive = false
 TargetGroup:AddToggle("DualHandLoopKick", {
-	Text = "Lock",
-	Default = false,
-	Callback = function(on)
-		loopKickDualActive = on
-		if on then
-			if not selectedKickPlayer then
-				notify("Error", "Select target first", 3)
-				Toggles.DualHandLoopKick:SetValue(false)
-				return
-			end
-			task.spawn(function()
-				local lastTargetCharDual = nil
-				local bp = nil
-				while loopKickDualActive do
-					local target = selectedKickPlayer
-					local char = Player.Character
-					local hum = char and char:FindFirstChild("Humanoid")
-					local seat = hum and hum.SeatPart
-					if not seat or not target or not target.Parent then
-						task.wait(0.5)
-						continue
-					end
-					local seatParent = seat.Parent
-					local grab = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureGrab")
-					local drop = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript") and seatParent.BlobmanSeatAndOwnerScript:FindFirstChild("CreatureDrop")
-					if not grab or not drop then
-						task.wait(0.5)
-						continue
-					end
-					local leftDet = seatParent:FindFirstChild("LeftDetector")
-					local rightDet = seatParent:FindFirstChild("RightDetector")
-					local leftWeld = leftDet and leftDet:FindFirstChild("LeftWeld")
-					local rightWeld = rightDet and rightDet:FindFirstChild("RightWeld")
-					local hrp = char:FindFirstChild("HumanoidRootPart")
-					local targetChar = target.Character
-					local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
-					local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
-					if targetHRP and targetHum and targetHum.Health > 0 then
-						if targetChar ~= lastTargetCharDual then
-							lastTargetCharDual = targetChar
-							if bp then
-								bp:Destroy()
-								bp = nil
-							end
-							if hrp then
-								hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 2, 0)
-							end
-							bp = Instance.new("BodyPosition")
-							bp.Position = Vector3.new(0, 2, 0)
-							bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-							bp.Parent = targetHRP
-						end
-						wait()
-						grab:FireServer(leftDet, targetHRP, leftWeld)
-						drop:FireServer(leftWeld, targetHRP)
-						grab:FireServer(leftDet, targetHRP, leftWeld)
-						drop:FireServer(leftWeld, targetHRP)
-						grab:FireServer(leftDet, targetHRP, leftWeld)
-						drop:FireServer(leftWeld, targetHRP)
-						grab:FireServer(leftDet, targetHRP, leftWeld)
-						drop:FireServer(leftWeld, targetHRP)
-					else
-					end
-				end
-				if bp then
-					bp:Destroy()
-				end
-			end)
-		else
-			loopKickDualActive = false
-		end
-	end
+  Text = "Gucci break",
+  Default = false,
+  Callback = function(on)
+    loopKickDualActive = on
+    if on then
+      if not selectedKickPlayer then
+        notify("Error", "Select target first", 3)
+        Toggles.DualHandLoopKick:SetValue(false)
+        return
+      end
+      
+      task.spawn(function()
+        local target = selectedKickPlayer
+        local char = Player.Character
+        local hum = char and char:FindFirstChild("Humanoid")
+        local seat = hum and hum.SeatPart
+        
+        if not seat or not target or not target.Parent then
+          notify("Error", "Target is invalid", 3)
+          return
+        end
+
+        local seatParent = seat.Parent
+        local blobmanScript = seatParent:FindFirstChild("BlobmanSeatAndOwnerScript")
+
+        if not blobmanScript then
+          notify("Error", "Blobman seat script not found", 3)
+          return
+        end
+        
+        local release = blobmanScript:FindFirstChild("CreatureRelease")
+        local grab = blobmanScript:FindFirstChild("CreatureGrab")
+        local drop = blobmanScript:FindFirstChild("CreatureDrop")
+        if not grab or not drop or not release then
+          notify("Error", "Missing creature actions", 3)
+          return
+        end
+        
+        local leftDet = seatParent:FindFirstChild("LeftDetector")
+        local leftWeld = leftDet and leftDet:FindFirstChild("LeftWeld")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local targetChar = target.Character
+        local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+        local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+        if targetHRP and targetHum and targetHum.Health > 0 then
+          if targetChar ~= lastTargetCharDual then
+            lastTargetCharDual = targetChar
+            if bp then
+              bp:Destroy()
+              bp = nil
+            end
+            if hrp then
+              hrp.CFrame = targetHRP.CFrame * CFrame.new(0, 12, 0)
+            end
+            grab:FireServer(leftDet, targetHRP, leftWeld)
+            task.wait(0.1)
+            release:FireServer(leftWeld, targetHRP)
+            targetHum.Sit = true
+            task.wait(0.1)
+            grab:FireServer(leftDet, targetHRP, leftWeld)
+            drop:FireServer(leftWeld, targetHRP)
+          end
+        end
+      end)
+    else
+      loopKickDualActive = false
+    end
+  end
 })
-	
-game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
-	if not processed and input.KeyCode == Enum.KeyCode.T and _G.AutoSitBlobT then
-		local plr = game.Players.LocalPlayer
-		local char = plr.Character
-		local hrp = char and char:FindFirstChild("HumanoidRootPart")
-		local hum = char and char:FindFirstChild("Humanoid")
-		if not hrp or not hum then
-			return
-		end
-		local folderName = plr.Name .. "SpawnedInToys"
-		local folder = workspace:FindFirstChild(folderName)
-		local blob = folder and folder:FindFirstChild("CreatureBlobman")
-		if not blob then
-			task.spawn(function()
-				pcall(function()
-					game.ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer("CreatureBlobman", hrp.CFrame, Vector3.zero)
-				end)
-			end)
-			if not folder then
-				folder = workspace:WaitForChild(folderName, 5)
-			end
-			if folder then
-				blob = folder:WaitForChild("CreatureBlobman", 5)
-			end
-		end
-		if blob then
-			local seat = blob:WaitForChild("VehicleSeat", 5)
-			if seat then
-				local t = tick()
-				repeat
-					if not hum.SeatPart then
-						hrp.CFrame = seat.CFrame + Vector3.new(0, 1, 0)
-						hrp.Velocity = Vector3.zero
-						seat:Sit(hum)
-					end
-					game:GetService("RunService").Heartbeat:Wait()
-				until hum.SeatPart == seat or tick() - t > 1.5
-			end
-		end
-	end
+
+-- Дополнительная функция для очистки при выходе из игры
+game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function()
+    if dualLockConnection then
+        dualLockConnection:Disconnect()
+        dualLockConnection = nil
+    end
+    
+    for _, control in pairs(dualLockControls) do
+        if control then
+            for _, obj in ipairs(control) do
+                if obj and obj.Parent then
+                    obj:Destroy()
+                end
+            end
+        end
+    end
+    dualLockControls = {}
+    
+    loopKickDualActive = false
 end)
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if not gameProcessed and input.KeyCode == Enum.KeyCode.R then
 		if blobMasterSwitch then
@@ -2143,6 +2137,32 @@ task.spawn(function()
 	end
 end)
 
+local mouse = Player:GetMouse()
+local tpToolConn
+
+MiscGroup:AddToggle("TPToggle", {
+		Text = "TP tool (T)",
+		Default = false,
+		Callback = function(Value)
+			if Value then
+				if tpToolConn then tpToolConn:Disconnect() end
+				tpToolConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+					if gameProcessed then return end
+					if input.KeyCode == Enum.KeyCode.T then
+						local character = Player.Character
+						if character and character:FindFirstChild("HumanoidRootPart") then
+							local hrp = character.HumanoidRootPart
+							local targetPos = mouse.Hit.Position
+							hrp.CFrame = CFrame.new(targetPos + Vector3.new(0,3,0))
+						end
+					end
+				end)
+			else
+				if tpToolConn then tpToolConn:Disconnect() tpToolConn = nil end
+			end
+		end
+})
+
 local PacketSpamAmount = 100
 MiscGroup:AddSlider("PacketAmountSlider", {
 	Text = "Packet Lag",
@@ -2154,6 +2174,7 @@ MiscGroup:AddSlider("PacketAmountSlider", {
 		PacketSpamAmount = Value
 	end
 })
+
 MiscGroup:AddToggle("NoBarrierCollision", {
 	Text = "Ignore House Barriers",
 	Default = false,
@@ -2174,6 +2195,7 @@ MiscGroup:AddToggle("NoBarrierCollision", {
 		end
 	end
 })
+
 MiscGroup:AddToggle("PacketLagToggle", {
 	Text = "Packet Lag",
 	Default = false,
@@ -2227,8 +2249,8 @@ SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({
 	"MenuKeybind"
 })
-ThemeManager:SetFolder("Ragalic client")
-SaveManager:SetFolder("Ragalic client/Configs")
+ThemeManager:SetFolder("Bababba")
+SaveManager:SetFolder("Bababa/Configs")
 SaveManager:BuildConfigSection(Tabs["UI Settings"])
 ThemeManager:ApplyToTab(Tabs["UI Settings"])
 PS.PlayerAdded:Connect(function(plr)
@@ -2282,7 +2304,7 @@ end
 
 local function notifyKick(displayName, username)
 	Library:Notify({
-		Title = "Ragalic Client",
+		Title = "Bababababa",
 		Description = displayName .. " (" .. username .. ") has been kicked",
 		Time = 6,
 	})
@@ -3473,3 +3495,23 @@ GrabGroup:AddToggle("MassLessGrabToggle", {
 		end)
 	end
 })
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local teleportKey = Enum.KeyCode.T -- кнопка телепорта
+local HEIGHT_OFFSET = 3 -- чтобы не застревать в земле
+
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode ~= teleportKey then return end
+
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if mouse.Hit then
+        local pos = mouse.Hit.Position + Vector3.new(0, HEIGHT_OFFSET, 0)
+        hrp.CFrame = CFrame.new(pos)
+    end
+end)
