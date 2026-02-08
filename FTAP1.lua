@@ -1028,7 +1028,7 @@ TargetGroup:AddButton({
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 TargetGroup:AddToggle("LoopKickGrabToggle", {
-Text = "Kick (Spam) New",
+Text = "Kick spam",
 Default = false,
 Callback = function(on)
 kickLoopEnabled = on
