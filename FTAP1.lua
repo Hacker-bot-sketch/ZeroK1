@@ -1088,8 +1088,8 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             if not bodyPosition then
               bodyPosition = Instance.new("BodyPosition")
               bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-              bodyPosition.D = 500  -- Высокое значение для быстрой реакции
-              bodyPosition.P = 5000 -- Высокая сила
+              bodyPosition.D = 1000  
+              bodyPosition.P = 10000
               bodyPosition.Parent = tRoot
             end
             if not bodyGyro then
@@ -1105,7 +1105,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
               tHum.Sit = false
               GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
               GE.DestroyGrabLine:FireServer(tRoot)
-              GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+              GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, true)
             end)
           end
         else
