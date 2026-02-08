@@ -1106,6 +1106,8 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
               GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
               GE.DestroyGrabLine:FireServer(tRoot)
               GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, true)
+			  GE.DestroyGrabLine:FireServer(tRoot)
+              GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, true)
             end)
           end
         else
