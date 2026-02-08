@@ -1098,8 +1098,10 @@ while kickLoopEnabled do
           bodyGyro.CFrame = tRoot.CFrame  
           bodyGyro.Parent = tRoot  
         end  
+		while true do
         bodyPosition.Position = targetPosition  
         bodyGyro.CFrame = lockCFrame  
+		end
         pcall(function()  
           tHum.PlatformStand = true  
           tHum.Sit = false  
