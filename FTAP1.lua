@@ -1031,7 +1031,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
     Text = "Kick (Spam) New",
     Default = false,
     Callback = function(on)
-        kickLoopEnabled = on
+        selectedKickPlayer = on
         if not on then return end
 
         task.spawn(function()
