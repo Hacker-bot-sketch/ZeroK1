@@ -107,69 +107,72 @@ local antiGucciConnection
 local safePosition
 local restoreFrames = 0
 local function spawnBlobman()
-	local args = {
-		[1] = "CreatureBlobman",
-		[2] = CFrame.new(0, 5000000, 0),
-		[3] = Vector3.new(0, 60, 0)
-	}
-	pcall(function()
-		ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(unpack(args))
-	end)
-	local folder = Workspace:WaitForChild(Player.Name .. "SpawnedInToys", 5)
-	if folder and folder:FindFirstChild("CreatureBlobman") then
-		local blob = folder.CreatureBlobman
-		if blob:FindFirstChild("Head") then
-			blob.Head.CFrame = CFrame.new(0, 50000, 0)
-			blob.Head.Anchored = true
-		end
-		notify("Success", "Blobman Spawned!", 3)
-	end
+    local args = {
+        [1] = "CreatureBlobman",
+        [2] = CFrame.new(10, 0, 0),
+        [3] = Vector3.new(0, 60, 0)
+    }
+    pcall(function()
+        ReplicatedStorage.MenuToys.SpawnToyRemoteFunction:InvokeServer(unpack(args))
+    end)
+    local folder = Workspace:WaitForChild(Player.Name .. "SpawnedInToys", 5)
+    if folder and folder:FindFirstChild("CreatureBlobman") then
+        local blob = folder.CreatureBlobman
+        if blob:FindFirstChild("Head") then
+            blob.Head.CFrame = CFrame.new(10, 0, 0)
+            notify("Success", "Blobman Spawned!", 3)
+        end
+    end
 end
+
 local function startAntiGucci()
-	local character = Player.Character or Player.CharacterAdded:Wait()
-	local humanoid = character:WaitForChild("Humanoid")
-	local rootPart = character:WaitForChild("HumanoidRootPart")
-	safePosition = rootPart.Position
-	local folder = Workspace:FindFirstChild(Player.Name .. "SpawnedInToys")
-	local blob = folder and folder:FindFirstChild("CreatureBlobman")
-	local seat = blob and blob:FindFirstChild("VehicleSeat")
-	if not blob then
-		spawnBlobman()
-		task.wait(1)
-		folder = Workspace:FindFirstChild(Player.Name .. "SpawnedInToys")
-		blob = folder and folder:FindFirstChild("CreatureBlobman")
-		seat = blob and blob:FindFirstChild("VehicleSeat")
-	end
-	if seat and seat:IsA("VehicleSeat") then
-		rootPart.CFrame = seat.CFrame + Vector3.new(0, 2, 0)
-		seat:Sit(humanoid)
-	end
-	humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
-		if humanoid.Jump and humanoid.Sit then
-			restoreFrames = 15
-			safePosition = rootPart.Position
-		end
-	end)
-	if antiGucciConnection then
-		antiGucciConnection:Disconnect()
-	end
-	antiGucciConnection = R.Heartbeat:Connect(function()
-		if not rootPart or not humanoid then
-			return
-		end
-		ReplicatedStorage.CharacterEvents.RagdollRemote:FireServer(rootPart, 0)
-		if restoreFrames > 0 then
-			rootPart.CFrame = CFrame.new(safePosition)
-			restoreFrames = restoreFrames - 1
-		end
-	end)
-	task.spawn(function()
-		while humanoid.Sit do
-			task.wait(1)
-		end
-		task.wait(0.5)
-		rootPart.CFrame = CFrame.new(safePosition)
-	end)
+    local character = Player.Character or Player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    local safePosition = rootPart.Position
+    local folder = Workspace:FindFirstChild(Player.Name .. "SpawnedInToys")
+    local blob = folder and folder:FindFirstChild("CreatureBlobman")
+    local seat = blob and blob:FindFirstChild("VehicleSeat")
+    if not blob then
+        spawnBlobman()
+        task.wait(1)
+        folder = Workspace:FindFirstChild(Player.Name .. "SpawnedInToys")
+        blob = folder and folder:FindFirstChild("CreatureBlobman")
+        seat = blob and blob:FindFirstChild("VehicleSeat")
+    end
+    if seat and seat:IsA("VehicleSeat") then
+        rootPart.CFrame = seat.CFrame + Vector3.new(0, 2, 0)
+        seat:Sit(humanoid)
+    end
+    humanoid:GetPropertyChangedSignal("Jump"):Connect(function()
+        if humanoid.Jump and humanoid.Sit then
+            restoreFrames = 15
+            safePosition = rootPart.Position
+        end
+    end)
+    if antiGucciConnection then
+        antiGucciConnection:Disconnect()
+    end
+    antiGucciConnection = R.Heartbeat:Connect(function()
+        if not rootPart or not humanoid then
+            return
+        end
+        ReplicatedStorage.CharacterEvents.RagdollRemote:FireServer(rootPart, 0)
+        if restoreFrames > 0 then
+            rootPart.CFrame = CFrame.new(safePosition)
+            restoreFrames = restoreFrames - 1
+        end
+    end)
+    task.spawn(function()
+        while humanoid.Sit do
+            task.wait(0.1)
+        end
+        task.wait(0.2)
+        rootPart.CFrame = CFrame.new(safePosition)
+        if blob:FindFirstChild("Head") then
+            blob.Head.CFrame = CFrame.new(blob.Head.Position.X, 500000, blob.Head.Position.Z)
+        end
+    end)
 end
 local function stopAntiGucci()
 	if antiGucciConnection then
@@ -766,7 +769,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < 0.0787 then return end
+                if acc < 0.0791 then return end
                 acc = 0
 
                 pcall(function()
@@ -1034,41 +1037,34 @@ local LocalPlayer = Players.LocalPlayer
 local GE = RS:WaitForChild("GrabEvents")
 
 TargetGroup:AddToggle("LoopKickGrabToggle", {
-    Text = "Kick spam",
+    Text = "Kick (Spam) New",
     Default = false,
     Callback = function(on)
         kickLoopEnabled = on
         if not on then return end
-
         task.spawn(function()
-            local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local myRoot = Character:FindFirstChild("HumanoidRootPart")
-
-            if not myRoot then
-                Toggles.LoopKickGrabToggle:SetValue(false)
-                return
-            end
-
+            local Players = game:GetService("Players")
+            local RS = game:GetService("ReplicatedStorage")
+            local RunService = game:GetService("RunService")
+            local Player = Players.LocalPlayer
+            local GE = RS:WaitForChild("GrabEvents")
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local myRoot = Character:WaitForChild("HumanoidRootPart")
             local savedPos = myRoot.CFrame
             local dragging = false
             local grabStart = 0
             local bodyPosition, bodyGyro
-
             while kickLoopEnabled do
                 local target = selectedKickPlayer
                 if not target or not target.Parent then break end
-
                 local tChar = target.Character
                 local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
-                local tHum = tChar and tChar:FindFirstChild("Humanoid")
-                local tHead = tChar and tChar:FindFirstChild("Head")
-
-                if tRoot and tHum and tHum.Health > 0 and tHead then
-                    -- жёстко стопаем физику
+                local tHum  = tChar and tChar:FindFirstChild("Humanoid")
+                local tHead = LocalPlayer.Character.Head
+                if tRoot and tHum and tHead and tHum.Health > 0 then
                     tRoot.AssemblyLinearVelocity = Vector3.zero
                     tRoot.AssemblyAngularVelocity = Vector3.zero
                     tRoot.Velocity = Vector3.zero
-
                     if not dragging then
                         myRoot.CFrame = tRoot.CFrame
                         pcall(function()
@@ -1077,48 +1073,34 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
                             GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
                         end)
-
                         if grabStart == 0 then
                             grabStart = tick()
-                        elseif tick() - grabStart > 0.12 then
+                        elseif tick() - grabStart > 0.08 then
                             dragging = true
                             grabStart = 0
                             myRoot.CFrame = savedPos
                         end
                     else
-                        -- 🔁 постоянное обновление позиции
-                        local targetPosition = tHead.Position + Vector3.new(0, 18, 0)
-
-                        -- BodyPosition
+                        local targetPosition = tHead.Position + Vector3.new(0, 15, 0)
                         if not bodyPosition or not bodyPosition.Parent then
                             bodyPosition = Instance.new("BodyPosition")
                             bodyPosition.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-                            bodyPosition.P = 20000
-                            bodyPosition.D = 1500
                             bodyPosition.Parent = tRoot
                         end
-
-                        -- BodyGyro
+                        bodyPosition.Position = targetPosition
+                        bodyPosition.P = 12000
+                        bodyPosition.D = 1000
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-                            bodyGyro.P = 30000
-                            bodyGyro.D = 1000
                             bodyGyro.Parent = tRoot
                         end
-
-                        -- 🔥 ОБНОВЛЕНИЕ КАЖДЫЙ КАДР
-                        bodyPosition.Position = targetPosition
-                        bodyPosition.P = 20000
-                        bodyPosition.D = 1500
-
                         bodyGyro.CFrame = CFrame.new(targetPosition)
-                        bodyGyro.P = 30000
-                        bodyGyro.D = 1000
-
+                        bodyGyro.P = 7000
+                        bodyGyro.D = 500
                         pcall(function()
                             tHum.PlatformStand = true
-                            tHum.Sit = false
+                            tHum.Sit = true
                             GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
                             GE.DestroyGrabLine:FireServer(tRoot)
                             GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
@@ -1127,33 +1109,20 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 else
                     dragging = false
                     grabStart = 0
-
-                    if bodyPosition then
-                        bodyPosition:Destroy()
-                        bodyPosition = nil
-                    end
-                    if bodyGyro then
-                        bodyGyro:Destroy()
-                        bodyGyro = nil
-                    end
+                    if bodyPosition then bodyPosition:Destroy() bodyPosition = nil end
+                    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
                 end
-
                 RunService.Heartbeat:Wait()
             end
-
-            -- 🧹 очистка
-            if myRoot then
-                myRoot.CFrame = savedPos
-                myRoot.Velocity = Vector3.zero
-            end
+            myRoot.CFrame = savedPos
+            myRoot.Velocity = Vector3.zero
             if bodyPosition then bodyPosition:Destroy() end
             if bodyGyro then bodyGyro:Destroy() end
-
             kickLoopEnabled = false
             Toggles.LoopKickGrabToggle:SetValue(false)
         end)
     end
-})       
+})
 
 local loopKickDualActive = false
 TargetGroup:AddToggle("DualHandLoopKick", {
