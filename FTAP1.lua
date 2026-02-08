@@ -1088,8 +1088,8 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             if not bodyPosition then
               bodyPosition = Instance.new("BodyPosition")
               bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-              bodyPosition.D = 2000  -- Высокое значение для быстрой реакции
-              bodyPosition.P = 20000 -- Высокая сила
+              bodyPosition.D = 500  -- Высокое значение для быстрой реакции
+              bodyPosition.P = 5000 -- Высокая сила
               bodyPosition.Parent = tRoot
             end
             if not bodyGyro then
