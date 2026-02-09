@@ -1094,7 +1094,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyPosition.Position = targetPosition
                         bodyPosition.P = 12000
-                        bodyPosition.D = 3000
+                        bodyPosition.D = 100
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
@@ -1102,7 +1102,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
                         bodyGyro.P = 7000
-                        bodyGyro.D = 3000
+                        bodyGyro.D = 100
                         pcall(function()
                             tHum.PlatformStand = true
                             tHum.Sit = true
