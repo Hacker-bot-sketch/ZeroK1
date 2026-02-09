@@ -165,9 +165,9 @@ local function startAntiGucci()
     end)
     task.spawn(function()
         while humanoid.Sit do
-            task.wait(0.1)
+            task.wait(0.4)
         end
-        task.wait(0.2)
+        task.wait(0.5)
         rootPart.CFrame = CFrame.new(safePosition)
         if blob:FindFirstChild("Head") then
             blob.Head.CFrame = CFrame.new(blob.Head.Position.X, 500000, blob.Head.Position.Z)
@@ -1094,7 +1094,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyPosition.Position = targetPosition
                         bodyPosition.P = 12000
-                        bodyPosition.D = 500
+                        bodyPosition.D = 3000
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
@@ -1102,7 +1102,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
                         bodyGyro.P = 7000
-                        bodyGyro.D = 700
+                        bodyGyro.D = 3000
                         pcall(function()
                             tHum.PlatformStand = true
                             tHum.Sit = true
