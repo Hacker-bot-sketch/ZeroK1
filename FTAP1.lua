@@ -769,7 +769,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.0791
+            local SEND_INTERVAL = 0.09
             local BURST = 1
             local acc = 0
 
@@ -791,8 +791,6 @@ DefenseExtra:AddToggle("AntiInputLag", {
                         DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
                     end)
                 end
-                basePart.AssemblyLinearVelocity = Vector3.zero
-                basePart.AssemblyAngularVelocity = Vector3.zero
             end)
         end)
     end
