@@ -769,6 +769,92 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
+            local SEND_INTERVAL = 0.05
+            local BURST = 1
+            local acc = 0
+
+            _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
+                if not _G.AntiInputLag or not toy or not toy.Parent then return end
+
+                acc += dt
+                if acc < SEND_INTERVAL then return end
+                acc = 0
+
+                pcall(function()
+                    SetOwner:FireServer(basePart, basePart.CFrame)
+                end)
+
+                local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
+                for i = 1, BURST do
+                    pcall(function()
+                        HoldRemote:InvokeServer(toy, char)
+                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
+						HoldRemote:InvokeServer(toy, char)				
+                    end)
+                end
+            end)
+        end)
+    end
+})
+
+DefenseExtra:AddToggle("AntiInputLag", {
+    Text = "Anti Input Lag (resonanse)",
+    Default = false,
+    Callback = function(Value)
+        _G.AntiInputLag = Value
+
+        local RunService = game:GetService("RunService")
+        local Players = game:GetService("Players")
+        local RS = game:GetService("ReplicatedStorage")
+        local Workspace = game:GetService("Workspace")
+
+        local player = Players.LocalPlayer
+
+        if not Value then
+            if _G.AIL_Conn then
+                _G.AIL_Conn:Disconnect()
+                _G.AIL_Conn = nil
+            end
+            return
+        end
+
+        task.spawn(function()
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+
+            if not SelectedToy then
+                warn("AntiInputLag: SelectedToy nil")
+                return
+            end
+
+            local MenuToys = RS:WaitForChild("MenuToys")
+            local SpawnRemote = MenuToys:WaitForChild("SpawnToyRemoteFunction")
+            local GrabEvents = RS:WaitForChild("GrabEvents")
+            local SetOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+
+            local toysFolder = Workspace:WaitForChild(player.Name .. "SpawnedInToys")
+            local toy = toysFolder:FindFirstChild(SelectedToy)
+
+            if not toy then
+                pcall(function()
+                    SpawnRemote:InvokeServer(
+                        SelectedToy,
+                        hrp.CFrame * CFrame.new(0, 3, 0),
+                        Vector3.zero
+                    )
+                end)
+                toy = toysFolder:WaitForChild(SelectedToy, 2)
+            end
+            if not toy then return end
+
+            local holdPart = toy:WaitForChild("HoldPart")
+            local HoldRemote = holdPart:WaitForChild("HoldItemRemoteFunction")
+            local DropRemote = holdPart:WaitForChild("DropItemRemoteFunction")
+
+            local basePart = toy.PrimaryPart or toy:FindFirstChildWhichIsA("BasePart")
+            if not basePart then return end
+            
+			local Spawn = workspace.SpawnLocation
             local SEND_INTERVAL = 0.09
             local BURST = 1
             local acc = 0
