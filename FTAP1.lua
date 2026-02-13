@@ -705,7 +705,7 @@ local SelectedToy = ToyList[DropdownValues[1]]
 DefenseExtra:AddDropdown("AntiInputLagToy", {
 	Text = "Input Lag Item",
 	Values = DropdownValues,
-	Default = 1,
+	Default = 2,
 	Callback = function(Value)
 		SelectedToy = ToyList[Value]
 	end
