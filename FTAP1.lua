@@ -1128,7 +1128,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 })
 
  loopKickDualActive = false
-	TargetGroup:AddToggle("DualHandLoopKick", {
+	BlobGroup:AddToggle("DualHandLoopKick", {
 		Text = "Loop Kick(Lock)",
 		Default = false,
 		Callback = function(on)
@@ -1398,7 +1398,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 				
 
 	local loopKickDualActive = false
-	TargetGroup:AddToggle("DualHandLoopKick", {
+	BlobGroup:AddToggle("DualHandLoopKick", {
 		Text = "loop kick",
 		Default = false,
 		Callback = function(on)
@@ -1493,7 +1493,7 @@ local grabRemote = rs.GrabEvents.SetNetworkOwner
 local spawnRemote = rs.MenuToys.SpawnToyRemoteFunction
 
 local loopKickDualActive = false
-TargetGroup:AddToggle("DualHandLoopKick", {
+BlobGroup:AddToggle("DualHandLoopKick", {
   Text = "Gucci break",
   Default = false,
   Callback = function(on)
