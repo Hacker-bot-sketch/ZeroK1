@@ -712,7 +712,7 @@ DefenseExtra:AddDropdown("AntiInputLagToy", {
 })
 
 DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag (resonanse)",
+    Text = "Anti Input Lag (test)",
     Default = false,
     Callback = function(Value)
         _G.AntiInputLag = Value
@@ -769,7 +769,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.05
+            local SEND_INTERVAL = 0.06
             local BURST = 1
             local acc = 0
 
@@ -788,8 +788,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 for i = 1, BURST do
                     pcall(function()
                         HoldRemote:InvokeServer(toy, char)
-                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
-						HoldRemote:InvokeServer(toy, char)				
+                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)				
                     end)
                 end
             end)
