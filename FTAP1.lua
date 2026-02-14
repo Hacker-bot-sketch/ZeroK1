@@ -2990,6 +2990,129 @@ MiscGroup:AddToggle("PacketLagToggle", {
 		end
 	end
 })
+
+	local Triggerbot = {
+		Enabled = false,
+		Connection = nil,
+		canGrab = true,
+		maxDistance = 20,
+		preGrabDelay = 0.00001,
+		postGrabDelay = 0.05, 
+		lastTarget = nil,
+		lastHitTime = 0,
+		targetMemoryDuration = 0.1,
+		checkThrottle = 0.008,
+		lastCheck = 0
+	}
+
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+
+	task.spawn(function()
+	local success, result = pcall(function()
+	return RS.GamepassEvents.CheckForGamepass:InvokeServer(20837132)
+	end)
+	
+	if success and result then 
+	Triggerbot.maxDistance = 29.3 
+	end
+	end)
+
+	if RS:FindFirstChild("GamepassEvents") and RS.GamepassEvents:FindFirstChild("FurtherReachBoughtNotifier") then
+		RS.GamepassEvents.FurtherReachBoughtNotifier.OnClientEvent:Connect(function() Triggerbot.maxDistance = 29.3 end)
+	end
+
+	function Triggerbot:GetTarget()
+		local c = Player.Character
+		if not c or not c:FindFirstChild("HumanoidRootPart") then return end
+		if Workspace:FindFirstChild("GrabParts") then return end
+		
+		local origin, dir = Camera.CFrame.Position, Camera.CFrame.LookVector
+		rayParams.FilterDescendantsInstances = { c, Workspace.Terrain }
+		
+		local result = Workspace:Raycast(origin, dir * 1000, rayParams)
+		if not result then
+			local dirs = { dir, (dir + Vector3.new(0, 0.075, 0)).Unit, (dir - Vector3.new(0, 0.075, 0)).Unit }
+			for _, d in ipairs(dirs) do
+				result = Workspace:Raycast(origin, d * 1000, rayParams)
+				if result then break end
+			end
+		end
+		
+		if not result then return end
+		local hit = result.Instance
+		local model = hit:FindFirstAncestorOfClass("Model")
+		if not model or not model:FindFirstChildOfClass("Humanoid") or model == c then return end
+		
+		local hum = model:FindFirstChildOfClass("Humanoid")
+		if hum.Health <= 0 then return end
+		
+		local root = model:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+		
+		local dist = (c.HumanoidRootPart.Position - root.Position).Magnitude
+		if dist > self.maxDistance then return end
+		
+		return model
+	end
+
+	function Triggerbot:OnHeartbeat()
+		if not self.Enabled or not self.canGrab then return end
+		if UserInputService:GetFocusedTextBox() then return end
+		
+		if tick() - self.lastCheck < self.checkThrottle then return end
+		self.lastCheck = tick()
+		
+		local t = self:GetTarget()
+		if t then 
+			self.lastTarget = t 
+			self.lastHitTime = tick()
+		elseif self.lastTarget and tick() - self.lastHitTime > self.targetMemoryDuration then 
+			self.lastTarget = nil 
+		end
+		
+		local c = Player.Character
+		local root = self.lastTarget and self.lastTarget:FindFirstChild("HumanoidRootPart")
+		
+		if not (self.lastTarget and c and c:FindFirstChild("HumanoidRootPart") and root) then return end
+		
+		if (c.HumanoidRootPart.Position - root.Position).Magnitude > self.maxDistance then 
+			self.lastTarget = nil 
+			return 
+		end
+		
+		if self.lastTarget then
+			self.canGrab = false
+			task.spawn(function()
+				task.wait(self.preGrabDelay)
+				pcall(mouse1press)
+				local t0 = tick()
+				repeat 
+					task.wait(0.02) 
+				until not Workspace:FindFirstChild("GrabParts") or tick() - t0 > 1.6
+				task.wait(self.postGrabDelay)
+				self.canGrab = true
+				self.lastTarget = nil
+			end)
+		end
+end
+
+
+MiscGroup:AddToggle("TriggerbotToggle", {
+		Text = "toggle triggerbot",
+		Default = Triggerbot.Enabled,
+		Callback = function(value)
+			Triggerbot.Enabled = value
+			if Triggerbot.Enabled and not Triggerbot.Connection then
+				Triggerbot.Connection = R.Heartbeat:Connect(function() Triggerbot:OnHeartbeat() end)
+			elseif not Triggerbot.Enabled and Triggerbot.Connection then
+				Triggerbot.Connection:Disconnect() 
+				Triggerbot.Connection = nil
+			end
+		end
+	})
+
+
 MiscGroup:AddSlider("FOVSlider", {
 	Text = "FOV",
 	Default = 90,
