@@ -882,6 +882,114 @@ DefenseExtra:AddToggle("AntiInputLag", {
 })
 
 DefenseExtra:AddToggle("AntiInputLag", {
+    Text = "Anti Input Lag (resonanse v2)",
+    Default = false,
+    Callback = function(Value)
+        _G.AntiInputLag = Value
+
+        local RunService = game:GetService("RunService")
+        local Players = game:GetService("Players")
+        local RS = game:GetService("ReplicatedStorage")
+        local Workspace = game:GetService("Workspace")
+
+        local player = Players.LocalPlayer
+
+        if not Value then
+            if _G.AIL_Conn then
+                _G.AIL_Conn:Disconnect()
+                _G.AIL_Conn = nil
+            end
+            return
+        end
+
+        task.spawn(function()
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+
+            if not SelectedToy then
+                warn("AntiInputLag: SelectedToy nil")
+                return
+            end
+
+            local MenuToys = RS:WaitForChild("MenuToys")
+            local SpawnRemote = MenuToys:WaitForChild("SpawnToyRemoteFunction")
+            local GrabEvents = RS:WaitForChild("GrabEvents")
+            local SetOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+
+            local toysFolder = Workspace:WaitForChild(player.Name .. "SpawnedInToys")
+            local toy = toysFolder:FindFirstChild(SelectedToy)
+
+            if not toy then
+                pcall(function()
+                    SpawnRemote:InvokeServer(
+                        SelectedToy,
+                        hrp.CFrame * CFrame.new(0, 3, 0),
+                        Vector3.zero
+                    )
+                end)
+                toy = toysFolder:WaitForChild(SelectedToy, 2)
+            end
+            if not toy then return end
+
+            local holdPart = toy:WaitForChild("HoldPart")
+            local HoldRemote = holdPart:WaitForChild("HoldItemRemoteFunction")
+            local DropRemote = holdPart:WaitForChild("DropItemRemoteFunction")
+
+            local basePart = toy.PrimaryPart or toy:FindFirstChildWhichIsA("BasePart")
+            if not basePart then return end
+            
+            local Spawn = workspace.SpawnLocation
+            
+            -- ОПТИМИЗАЦИЯ 1: Уменьшаем интервал отправки
+            local SEND_INTERVAL = 0.03  -- Было 0.09, теперь 0.03 (в 3 раза быстрее)
+            
+            -- ОПТИМИЗАЦИЯ 2: Убираем burst, отправляем только 1 раз за интервал
+            -- Это уменьшает нагрузку на сеть
+            
+            -- ОПТИМИЗАЦИЯ 3: Кэшируем CFrame спавна
+            local spawnCF = Spawn.CFrame
+            local targetOffset = CFrame.new(0, 500000, 0)
+            
+            -- ОПТИМИЗАЦИЯ 4: Используем флаги для контроля состояния
+            local isHolding = false
+            local lastSetOwnerTime = 0
+            local lastActionTime = 0
+            
+            -- ОПТИМИЗАЦИЯ 5: Предварительно создаем таблицу для аргументов
+            local dropArgs = {toy, spawnCF * targetOffset, Vector3.zero}
+            
+            _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
+                if not _G.AntiInputLag or not toy or not toy.Parent then return end
+
+                local currentTime = tick()
+                
+                -- SetOwner отправляем реже, так как он не так критичен
+                if currentTime - lastSetOwnerTime > 0.5 then
+                    pcall(function()
+                        SetOwner:FireServer(basePart, basePart.CFrame)
+                    end)
+                    lastSetOwnerTime = currentTime
+                end
+
+                -- Hold/Drop отправляем с увеличенной частотой
+                if currentTime - lastActionTime > SEND_INTERVAL then
+                    pcall(function()
+                        -- Используем task.spawn для параллельного выполнения
+                        task.spawn(function()
+                            HoldRemote:InvokeServer(toy, char)
+                            -- Небольшая задержка между холдом и дропом для надежности
+                            task.wait(0.01)
+                            DropRemote:InvokeServer(unpack(dropArgs))
+                        end)
+                    end)
+                    lastActionTime = currentTime
+                end
+            end)
+        end)
+    end
+})
+
+DefenseExtra:AddToggle("AntiInputLag", {
     Text = "Anti Input Lag (resonanse)",
     Default = false,
     Callback = function(Value)
