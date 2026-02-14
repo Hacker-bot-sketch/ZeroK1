@@ -1460,11 +1460,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             kickLoopEnabled = false
             Toggles.LoopKickGrabToggle:SetValue(false)
 			while true do
-			    GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-				GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-			    bodyGyro.CFrame = CFrame.new(targetPosition)
-				bodyPosition.Position = targetPosition
-				GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
 			end
         end)
     end
