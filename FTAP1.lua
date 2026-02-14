@@ -1459,8 +1459,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             if bodyGyro then bodyGyro:Destroy() end
             kickLoopEnabled = false
             Toggles.LoopKickGrabToggle:SetValue(false)
-			while true do
-			end
         end)
     end
 })
