@@ -1561,6 +1561,158 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
     end
 })
 				
+	local snowballSpamEnabled = false
+	local currentSnowball = nil
+	local snowballName = "BallSnowball"
+	
+	TargetGroup:AddToggle("SnowballSpamToggle", {
+		Text = "snowball spam (ragdoll)",
+		Default = false,
+		Callback = function(on)
+			snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+						if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+						
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
+
+						pcall(function()
+							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
+						end)
+						task.wait(0.02)
+						
+
+
+						local tHead = tChar and tChar:FindFirstChild("Head")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+								
+
+								local jitterX = (math.random() - 0.5) * 0.3
+								local jitterY = (math.random() - 0.5) * 0.3
+								local jitterZ = (math.random() - 0.5) * 0.3
+								
+								soundPart.CFrame = targetPart.CFrame * CFrame.new(jitterX, jitterY, jitterZ)
+								soundPart.AssemblyLinearVelocity = Vector3.new(
+									math.random() * 20 - 10,
+									math.random() * 20 - 10,
+									math.random() * 20 - 10
+								)
+								task.wait(0.01)
+							end
+							
+
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, 0.2, 0)
+								soundPart.AssemblyLinearVelocity = Vector3.new(0, -250, 0)
+								soundPart.AssemblyAngularVelocity = Vector3.new()
+							end)
+							
+
+							task.wait(0.03)
+						end
+					end
+					
+
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
 
 	local loopKickDualActive = false
 	BlobGroup:AddToggle("DualHandLoopKick", {
