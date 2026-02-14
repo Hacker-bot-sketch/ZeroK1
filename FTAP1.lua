@@ -1864,7 +1864,7 @@ local loopKickDualActive = false
 								bp.Parent = targetHRP
 							end
 							grab:FireServer(leftDet, targetHRP, leftWeld)
-							task.wait()
+							task.wait(0.1)
 							release:FireServer(leftWeld, targetHRP)
                             targetHum.Sit = true
                             task.wait(0.1)
