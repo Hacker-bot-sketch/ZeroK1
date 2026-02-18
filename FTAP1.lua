@@ -939,14 +939,9 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
             local Spawn = workspace.SpawnLocation
-            
-            -- ОПТИМИЗАЦИЯ 1: Уменьшаем интервал отправки
-            local SEND_INTERVAL = 0.03  -- Было 0.09, теперь 0.03 (в 3 раза быстрее)
-            
-            -- ОПТИМИЗАЦИЯ 2: Убираем burst, отправляем только 1 раз за интервал
-            -- Это уменьшает нагрузку на сеть
-            
-            -- ОПТИМИЗАЦИЯ 3: Кэшируем CFrame спавна
+
+            local SEND_INTERVAL = 0.03
+					
             local spawnCF = Spawn.CFrame
             local targetOffset = CFrame.new(0, 500000, 0)
             
@@ -1274,6 +1269,7 @@ DefenseExtra:AddToggle("ShurikenAntiKick", {
 
 local TargetGroup = Tabs.Target:AddLeftGroupbox("Target Interaction")
 local BlobGroup = Tabs.Target:AddRightGroupbox("Blobman Kick")
+local AuraGroup = Tabs.Target:AddRightGroupbox("Aura")
 local WhitelistGroup = Tabs.Target:AddRightGroupbox("whitelist")
 local selectedKickPlayer = nil
 local kickLoopEnabled = false
@@ -1404,6 +1400,444 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
         end)
     end
 })
+
+	local snowballSpamEnabled = false
+	local currentSnowball = nil
+	local snowballName = "BallSnowball"
+	
+	AuraGroup:AddToggle("SnowballSpamToggle", {
+		Text = "snowball spam (loop)",
+		Default = false,
+		Callback = function(on)
+			snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+						if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+						
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
+
+						pcall(function()
+							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
+						end)
+						task.wait(0.02)
+						
+
+
+						local tHead = tChar and tChar:FindFirstChild("Head")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+								
+
+								local jitterX = (math.random() - 0.5) * 0.3
+								local jitterY = (math.random() - 0.5) * 0.3
+								local jitterZ = (math.random() - 0.5) * 0.3
+								
+								soundPart.CFrame = targetPart.CFrame * CFrame.new(jitterX, jitterY, jitterZ)
+								soundPart.AssemblyLinearVelocity = Vector3.new(
+									math.random() * 20 - 10,
+									math.random() * 20 - 10,
+									math.random() * 20 - 10
+								)
+								task.wait(0.01)
+							end
+							
+
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, 0.2, 0)
+								soundPart.AssemblyLinearVelocity = Vector3.new(0, -250, 0)
+								soundPart.AssemblyAngularVelocity = Vector3.new()
+							end)
+							
+
+							task.wait(0.03)
+						end
+					end
+					
+
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
+
+local snowballName = "PalletLightBrown"
+	
+	AuraGroup:AddToggle("SnowballSpamToggle", {
+		Text = "Pallet spam (loop)",
+		Default = false,
+		Callback = function(on)
+			snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+						if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+						
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
+						soundPart.CanCollide = false
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
+
+						pcall(function()
+							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
+						end)
+						task.wait(0.02)
+						
+
+
+						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+							end
+							
+
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, 1, 0)
+                                task.wait(0.075)
+                                soundPart.CFrame = CFrame.new(0, 500000, 0)
+							end)
+							
+							task.wait(0.005)
+						end
+					end
+					
+
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
+
+local snowballName = "SprayCanWD"
+	
+	AuraGroup:AddToggle("SnowballSpamToggle", {
+		Text = "WD spam (loop)",
+		Default = false,
+		Callback = function(on)
+			snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+						if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+						
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
+
+						pcall(function()
+							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
+						end)
+						task.wait(0.02)
+						
+
+
+						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+								
+
+								local jitterX = (math.random() - 0.5) * 0.3
+								local jitterY = (math.random() - 0.5) * 0.3
+								local jitterZ = (math.random() - 0.5) * 0.3
+								
+								soundPart.CFrame = targetPart.CFrame * CFrame.new
+								soundPart.AssemblyLinearVelocity = Vector3.zero
+								task.wait(0.01)
+							end
+							
+
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(3, 3, 3)
+								soundPart.AssemblyLinearVelocity = Vector3.new(0, -250, 0)
+								soundPart.AssemblyAngularVelocity = Vector3.new()
+							end)
+							
+
+							task.wait(0.03)
+						end
+					end
+					
+
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
 
  loopKickDualActive = false
 	BlobGroup:AddToggle("DualHandLoopKick", {
@@ -1667,159 +2101,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
     end
 })
 				
-	local snowballSpamEnabled = false
-	local currentSnowball = nil
-	local snowballName = "BallSnowball"
-	
-	TargetGroup:AddToggle("SnowballSpamToggle", {
-		Text = "snowball spam (ragdoll)",
-		Default = false,
-		Callback = function(on)
-			snowballSpamEnabled = on
-			
-			if on then
-				local target = selectedKickPlayer
-				if not target then
-					if Toggles.SnowballSpamToggle then
-						Toggles.SnowballSpamToggle:SetValue(false)
-					end
-					notify("Error", "Select target first!", 3)
-					return
-				end
-				
-				task.spawn(function()
-					local RS = game:GetService("ReplicatedStorage")
-					local GE = RS:WaitForChild("GrabEvents")
-					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
-					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
-					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
-					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
-					local plr = game.Players.LocalPlayer
-					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-					local folderName = plr.Name .. "SpawnedInToys"
-					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
-					
-					if not canSpawn then
-						notify("Error", "CanSpawnToy not found!", 3)
-						snowballSpamEnabled = false
-						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
-						return
-					end
-					
-
-					local function SpawnToy(name)
-						local t = tick()
-						while not canSpawn.Value do
-							if not snowballSpamEnabled or tick() - t > 5 then return nil end
-							task.wait(0.01)
-						end
-						
-						if myRoot then
-							task.spawn(function()
-								pcall(function()
-									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
-								end)
-							end)
-						end
-						
-						local inv = workspace:FindFirstChild(folderName)
-						if inv then
-							return inv:WaitForChild(name, 2)
-						end
-						return nil
-					end
-					
-
-					while snowballSpamEnabled do
-						task.wait(0.005)
-						
-						if not target or not target.Parent or not target.Character then
-							break
-						end
-						
-						local tChar = target.Character
-						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
-						if not tRoot or not myRoot then
-							continue
-						end
-						
-
-						local inv = workspace:FindFirstChild(folderName)
-						local sb = inv and inv:FindFirstChild(snowballName)
-						
-						if not sb then
-							sb = SpawnToy(snowballName)
-							if not sb then continue end
-						end
-						
-						currentSnowball = sb
-						local soundPart = sb:FindFirstChild("SoundPart")
-						if not soundPart then continue end
-						
-
-						pcall(function()
-							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
-						end)
-						task.wait(0.03)
-						
-
-						pcall(function()
-							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
-						end)
-						task.wait(0.02)
-						
-
-
-						local tHead = tChar and tChar:FindFirstChild("Head")
-						local targetPart = tHead or tRoot
-						
-						if targetPart then
-
-							for jitter = 1, 8 do
-								if not soundPart.Parent or not targetPart.Parent then break end
-								
-
-								local jitterX = (math.random() - 0.5) * 0.3
-								local jitterY = (math.random() - 0.5) * 0.3
-								local jitterZ = (math.random() - 0.5) * 0.3
-								
-								soundPart.CFrame = targetPart.CFrame * CFrame.new(jitterX, jitterY, jitterZ)
-								soundPart.AssemblyLinearVelocity = Vector3.new(
-									math.random() * 20 - 10,
-									math.random() * 20 - 10,
-									math.random() * 20 - 10
-								)
-								task.wait(0.01)
-							end
-							
-
-							pcall(function()
-								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, 0.2, 0)
-								soundPart.AssemblyLinearVelocity = Vector3.new(0, -250, 0)
-								soundPart.AssemblyAngularVelocity = Vector3.new()
-							end)
-							
-
-							task.wait(0.03)
-						end
-					end
-					
-
-					if currentSnowball and currentSnowball.Parent then
-						pcall(function()
-							DestroyRemote:FireServer(currentSnowball)
-						end)
-					end
-					currentSnowball = nil
-					snowballSpamEnabled = false
-					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
-				end)
-			else
-				snowballSpamEnabled = false
-			end
-		end
-	})
-
 	local loopKickDualActive = false
 	BlobGroup:AddToggle("DualHandLoopKick", {
 		Text = "loop kick",
@@ -2195,8 +2476,111 @@ local DestroyTargetGucciActive = false
 local DestroyTargetGucciActive = false
 local DestroyTargetGucciActive = false
 local DestroyTargetGucciActive = false
+
 TargetGroup:AddToggle("DestroyTargetGucci", {
-	Text = "Destroy Gucci (sit)",
+	Text = "Destroy Gucci (Tractor)",
+	Default = false,
+	Callback = function(Value)
+		DestroyTargetGucciActive = Value
+		if Value then
+			if not selectedKickPlayer then
+				notify("Error", "Error", 3)
+				Toggles.DestroyTargetGucci:SetValue(false)
+				return
+			end
+			local char = Player.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if not root then
+				return
+			end
+			local SafeSpot = root.CFrame
+			local RunService = game:GetService("RunService")
+			local folderName = selectedKickPlayer.Name .. "SpawnedInToys"
+			notify("System", "spawn toy " .. folderName, 3)
+			task.spawn(function()
+				while DestroyTargetGucciActive do
+					if not selectedKickPlayer or not selectedKickPlayer.Parent then
+						notify("System", "Activated", 3)
+						DestroyTargetGucciActive = false
+						Toggles.DestroyTargetGucci:SetValue(false)
+						break
+					end
+					local toysFolder = workspace:FindFirstChild(folderName)
+					if not toysFolder then
+						task.wait(1)
+					else
+						local foundBlob = false
+						for _, obj in ipairs(toysFolder:GetChildren()) do
+							if not DestroyTargetGucciActive then
+								break
+							end
+							if obj.Name == "TractorGreen" then
+								foundBlob = true
+								local seat = obj:FindFirstChild("VehicleSeat") or obj:FindFirstChildWhichIsA("VehicleSeat", true)
+								if seat then
+									local myChar = Player.Character
+									local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+									local myHum = myChar and myChar:FindFirstChild("Humanoid")
+									if myRoot and myHum then
+										if myHum.SeatPart ~= seat then
+											notify("Target", "target", 1)
+											local magnetConnection
+											magnetConnection = RunService.Stepped:Connect(function()
+												if myRoot and seat then
+													myRoot.CFrame = seat.CFrame
+													myRoot.Velocity = Vector3.zero
+													if obj.PrimaryPart then
+														obj.PrimaryPart.Velocity = Vector3.zero
+														obj.PrimaryPart.RotVelocity = Vector3.zero
+													end
+												end
+											end)
+											local sitStart = tick()
+											while tick() - sitStart < 1 do
+												if not DestroyTargetGucciActive then
+													break
+												end
+												if myHum.SeatPart == seat then
+													break
+												end
+												seat:Sit(myHum)
+												task.wait()
+											end
+											if magnetConnection then
+												magnetConnection:Disconnect()
+											end
+											if myHum.SeatPart == seat then
+												task.wait(0.3)
+												myHum.Sit = false
+												myHum.Jump = true
+												task.wait(0.05)
+												myRoot.CFrame = SafeSpot
+												myRoot.Velocity = Vector3.zero
+												notify("Success", "gucci has removed", 1)
+												task.wait(0.5)
+											else
+												myRoot.CFrame = SafeSpot
+											end
+										end
+									end
+								end
+							end
+						end
+						if not foundBlob then
+						end
+					end
+					task.wait(1)
+				end
+			end)
+		else
+			DestroyTargetGucciActive = false
+			notify("System", "remove Gucci off", 2)
+		end
+	end
+})
+
+TargetGroup:AddToggle("DestroyTargetGucci", {
+	Text = "Destroy Gucci (blobman)",
 	Default = false,
 	Callback = function(Value)
 		DestroyTargetGucciActive = Value
@@ -2645,6 +3029,141 @@ GrabGroup:AddToggle("KillGrabToggle", {
 		killGrabEnabled = Value
 	end
 })
+
+GrabGroup:AddToggle("MassLessGrabToggle", {
+	Text = "MassLess Grab",
+	Default = false,
+	Callback = function(Value)
+		_G.MassLessGrab = Value
+		if not _G.MassLessGrab then
+			if _G.MLConn then
+				_G.MLConn:Disconnect()
+				_G.MLConn = nil
+			end
+			return
+		end
+		if _G.MLConn then
+			_G.MLConn:Disconnect()
+			_G.MLConn = nil
+		end
+		_G.MLSense = _G.MLSense or 200
+		_G.MLConn = game:GetService("RunService").Heartbeat:Connect(function()
+			if not _G.MassLessGrab then
+				return
+			end
+			local gp = workspace:FindFirstChild("GrabParts")
+			if not gp then
+				return
+			end
+			local dp = gp:FindFirstChild("DragPart")
+			if not dp then
+				return
+			end
+			local ap = dp:FindFirstChild("AlignPosition")
+			local ao = dp:FindFirstChild("AlignOrientation")
+			if ap then
+				ap.Responsiveness = _G.MLSense
+				ap.MaxForce = math.huge
+				ap.MaxVelocity = math.huge
+			end
+			if ao then
+				ao.Responsiveness = _G.MLSense
+				ao.MaxTorque = math.huge
+			end
+		end)
+	end
+})
+
+AuraGroup:AddDropdown("RemoveAntiKickAuraRadiusDropdown", {
+	Text = "Anti Kick Aura Radius",
+	Values = {
+		"10",
+		"12",
+		"14",
+		"16",
+		"18",
+		"20"
+	},
+	Default = "15",
+	Callback = function(value)
+		removeAntiKickRadius = tonumber(value)
+	end
+})
+
+AuraGroup:AddToggle("RemoveAntiKickAuraToggle", {
+	Text = "Remove Anti Kick Aura",
+	Default = false,
+	Callback = function(on)
+		removeAntiKickAuraActive = on
+		if not on then
+			if removeAntiKickAuraConnection then
+				removeAntiKickAuraConnection:Disconnect()
+				removeAntiKickAuraConnection = nil
+			end
+			return
+		end
+		task.spawn(function()
+			local RS = game:GetService("ReplicatedStorage")
+			local Players = game:GetService("Players")
+			local RunService = game:GetService("RunService")
+			local LocalPlayer = Players.LocalPlayer
+			local GrabEvents = RS:WaitForChild("GrabEvents")
+			local SetNetOwner = GrabEvents:WaitForChild("SetNetworkOwner")
+			removeAntiKickAuraConnection = RunService.Heartbeat:Connect(function()
+				local myChar = LocalPlayer.Character
+				local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+				if not myRoot then
+					return
+				end
+				for _, target in ipairs(Players:GetPlayers()) do
+					if target ~= LocalPlayer then
+						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot then
+							continue
+						end
+
+						if useWhitelistRemoveAntiKick
+                            and LocalPlayer:IsFriendsWith(target.UserId) then
+							continue
+						end
+
+						if (tRoot.Position - myRoot.Position).Magnitude <= removeAntiKickRadius then
+							local spawned = workspace:FindFirstChild(
+                                target.Name .. "SpawnedInToys"
+                            )
+							if spawned then
+								for _, toyName in ipairs({
+									"NinjaKunai",
+									"NinjaShuriken",
+									"AntiKick"
+								}) do
+									local toy = spawned:FindFirstChild(toyName)
+									if toy then
+										local part = toy:FindFirstChild("SoundPart")
+										if part then
+											pcall(function()
+												SetNetOwner:FireServer(
+                                                    part,
+                                                    part.CFrame
+                                                )
+											end)
+											if part:FindFirstChild("PartOwner")
+                                                and part.PartOwner.Value == LocalPlayer.Name then
+												part.CFrame = CFrame.new(0, 1000, 0)
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end)
+		end)
+	end
+})
+
 local PlayerView = Tabs.Player:AddLeftGroupbox("View & Movement")
 local PlayerESP = Tabs.Player:AddRightGroupbox("ESP")
 local PlayerEnv = Tabs.Player:AddLeftGroupbox("Environment")
