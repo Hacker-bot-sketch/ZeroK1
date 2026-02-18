@@ -3510,6 +3510,33 @@ MiscGroup:AddToggle("PacketLagToggle", {
 	end
 })
 
+MiscGroup:AddToggle("JerkOffToggle", {
+	Text = "Jerk Off",
+	Default = false,
+	Callback = function(on)
+		playJerkOffActive = on
+		if on then
+			startJerkOff()
+		else
+			stopJerkOff()
+		end
+	end
+})
+
+MiscGroup:AddDropdown("JerkKey", {
+	Text = "Toggle Key",
+	Values = {
+		"Q",
+		"E",
+		"R",
+		"T"
+	},
+	Default = 1,
+	Callback = function(v)
+		selectedKey = Enum.KeyCode[v]
+	end
+})
+
 	local Triggerbot = {
 		Enabled = false,
 		Connection = nil,
