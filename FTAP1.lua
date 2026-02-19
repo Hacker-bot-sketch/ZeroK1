@@ -1401,6 +1401,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
     end
 })
 
+
 	local snowballSpamEnabled = false
 	local currentSnowball = nil
 	local snowballName = "BallSnowball"
@@ -1504,7 +1505,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 						
 
 
-						local tHead = tChar and tChar:FindFirstChild("Head")
+						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
 						local targetPart = tHead or tRoot
 						
 						if targetPart then
