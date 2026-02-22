@@ -534,34 +534,10 @@ DefenseGroup:AddToggle("AntiLagToggle", {
 	Default = false,
 	Callback = function(Value)
 		if Value then
-			local grabFolder = ReplicatedStorage:FindFirstChild("GrabEvents")
-			if grabFolder then
-				local create = grabFolder:FindFirstChild("CreateGrabLine")
-				local extend = grabFolder:FindFirstChild("ExtendGrabLine")
-				if create and create:IsA("RemoteEvent") then
-					create:Destroy()
-				end
-				if extend and extend:IsA("RemoteEvent") then
-					extend:Destroy()
-				end
-			end
-			for _, v in ipairs(workspace:GetDescendants()) do
-				if v:IsA("Beam") or v.Name:lower():find("line") then
-					v:Destroy()
-				end
-			end
-		else
-			local grabFolder = ReplicatedStorage:FindFirstChild("GrabEvents")
-			if grabFolder then
-				if createGrabLineCopy and not grabFolder:FindFirstChild("CreateGrabLine") then
-					local restoredCreate = createGrabLineCopy:Clone()
-					restoredCreate.Parent = grabFolder
-				end
-				if extendGrabLineCopy and not grabFolder:FindFirstChild("ExtendGrabLine") then
-					local restoredExtend = extendGrabLineCopy:Clone()
-					restoredExtend.Parent = grabFolder
-				end
-			end
+		game.Players.LocalPlayer.PlayerScripts.CharacterAndBeamMove.Disabled = true
+		end
+		if not Value then
+			game.Players.LocalPlayer.PlayerScripts.CharacterAndBeamMove.Disabled = false
 		end
 	end,
 })
@@ -712,7 +688,7 @@ DefenseExtra:AddDropdown("AntiInputLagToy", {
 })
 
 DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag (test 2)",
+    Text = "Anti Input Lag (strong)",
     Default = false,
     Callback = function(Value)
         _G.AntiInputLag = Value
@@ -769,35 +745,32 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.05
-            local BURST = 1
             local acc = 0
 
             _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < SEND_INTERVAL then return end
+                if acc < 0.055 then return end
                 acc = 0
 
                 pcall(function()
                     SetOwner:FireServer(basePart, basePart.CFrame)
                 end)
-
                 local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
-                for i = 1, BURST do
+                for i = 1, 1 do
                     pcall(function()
-                        HoldRemote:InvokeServer(toy, char)
-                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)				
+						HoldRemote:InvokeServer(toy, char)
+						DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
                     end)
                 end
-            end)
+			end)
         end)
     end
 })
 
 DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag (test)",
+    Text = "Anti Input Lag (fast)",
     Default = false,
     Callback = function(Value)
         _G.AntiInputLag = Value
@@ -854,15 +827,13 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.06
-            local BURST = 1
             local acc = 0
 
             _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < SEND_INTERVAL then return end
+                if acc < 0.080 then return end
                 acc = 0
 
                 pcall(function()
@@ -870,116 +841,13 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 end)
 
                 local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
-                for i = 1, BURST do
+                for i = 1, 1 do
                     pcall(function()
-                        HoldRemote:InvokeServer(toy, char)
-                        DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)				
+						HoldRemote:InvokeServer(toy, char)
+						DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
                     end)
                 end
-            end)
-        end)
-    end
-})
-
-DefenseExtra:AddToggle("AntiInputLag", {
-    Text = "Anti Input Lag (resonanse v2)",
-    Default = false,
-    Callback = function(Value)
-        _G.AntiInputLag = Value
-
-        local RunService = game:GetService("RunService")
-        local Players = game:GetService("Players")
-        local RS = game:GetService("ReplicatedStorage")
-        local Workspace = game:GetService("Workspace")
-
-        local player = Players.LocalPlayer
-
-        if not Value then
-            if _G.AIL_Conn then
-                _G.AIL_Conn:Disconnect()
-                _G.AIL_Conn = nil
-            end
-            return
-        end
-
-        task.spawn(function()
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-
-            if not SelectedToy then
-                warn("AntiInputLag: SelectedToy nil")
-                return
-            end
-
-            local MenuToys = RS:WaitForChild("MenuToys")
-            local SpawnRemote = MenuToys:WaitForChild("SpawnToyRemoteFunction")
-            local GrabEvents = RS:WaitForChild("GrabEvents")
-            local SetOwner = GrabEvents:WaitForChild("SetNetworkOwner")
-
-            local toysFolder = Workspace:WaitForChild(player.Name .. "SpawnedInToys")
-            local toy = toysFolder:FindFirstChild(SelectedToy)
-
-            if not toy then
-                pcall(function()
-                    SpawnRemote:InvokeServer(
-                        SelectedToy,
-                        hrp.CFrame * CFrame.new(0, 3, 0),
-                        Vector3.zero
-                    )
-                end)
-                toy = toysFolder:WaitForChild(SelectedToy, 2)
-            end
-            if not toy then return end
-
-            local holdPart = toy:WaitForChild("HoldPart")
-            local HoldRemote = holdPart:WaitForChild("HoldItemRemoteFunction")
-            local DropRemote = holdPart:WaitForChild("DropItemRemoteFunction")
-
-            local basePart = toy.PrimaryPart or toy:FindFirstChildWhichIsA("BasePart")
-            if not basePart then return end
-            
-            local Spawn = workspace.SpawnLocation
-
-            local SEND_INTERVAL = 0.03
-					
-            local spawnCF = Spawn.CFrame
-            local targetOffset = CFrame.new(0, 500000, 0)
-            
-            -- ОПТИМИЗАЦИЯ 4: Используем флаги для контроля состояния
-            local isHolding = false
-            local lastSetOwnerTime = 0
-            local lastActionTime = 0
-            
-            -- ОПТИМИЗАЦИЯ 5: Предварительно создаем таблицу для аргументов
-            local dropArgs = {toy, spawnCF * targetOffset, Vector3.zero}
-            
-            _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
-                if not _G.AntiInputLag or not toy or not toy.Parent then return end
-
-                local currentTime = tick()
-                
-                -- SetOwner отправляем реже, так как он не так критичен
-                if currentTime - lastSetOwnerTime > 0.5 then
-                    pcall(function()
-                        SetOwner:FireServer(basePart, basePart.CFrame)
-                    end)
-                    lastSetOwnerTime = currentTime
-                end
-
-                -- Hold/Drop отправляем с увеличенной частотой
-                if currentTime - lastActionTime > SEND_INTERVAL then
-                    pcall(function()
-                        -- Используем task.spawn для параллельного выполнения
-                        task.spawn(function()
-                            HoldRemote:InvokeServer(toy, char)
-                            -- Небольшая задержка между холдом и дропом для надежности
-                            task.wait(0.01)
-                            DropRemote:InvokeServer(unpack(dropArgs))
-                        end)
-                    end)
-                    lastActionTime = currentTime
-                end
-            end)
+			end)
         end)
     end
 })
@@ -1042,15 +910,13 @@ DefenseExtra:AddToggle("AntiInputLag", {
             if not basePart then return end
             
 			local Spawn = workspace.SpawnLocation
-            local SEND_INTERVAL = 0.09
-            local BURST = 1
             local acc = 0
 
             _G.AIL_Conn = RunService.Heartbeat:Connect(function(dt)
                 if not _G.AntiInputLag or not toy or not toy.Parent then return end
 
                 acc += dt
-                if acc < SEND_INTERVAL then return end
+                if acc < 0.035 then return end
                 acc = 0
 
                 pcall(function()
@@ -1058,7 +924,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
                 end)
 
                 local targetCFrame = Spawn.CFrame * CFrame.new(0, 500000, 0)
-                for i = 1, BURST do
+                for i = 1, 1 do
                     pcall(function()
                         HoldRemote:InvokeServer(toy, char)
                         DropRemote:InvokeServer(toy, targetCFrame, Vector3.zero)
@@ -1068,6 +934,7 @@ DefenseExtra:AddToggle("AntiInputLag", {
         end)
     end
 })
+
 local tpActive = false
 DefenseExtra:AddToggle("ShurikenAntiKick", {
 	Text = "Anti Kick",
@@ -1555,10 +1422,10 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
 		end
 	})
 
-local snowballName = "PalletLightBrown"
+local snowballName = "FoodBanana"
 	
 	AuraGroup:AddToggle("SnowballSpamToggle", {
-		Text = "Pallet spam (loop)",
+		Text = "Banana spam loop (no auto)",
 		Default = false,
 		Callback = function(on)
 			snowballSpamEnabled = on
@@ -1607,15 +1474,14 @@ local snowballName = "PalletLightBrown"
 								end)
 							end)
 						end
-						
+                         
 						local inv = workspace:FindFirstChild(folderName)
 						if inv then
 							return inv:WaitForChild(name, 2)
 						end
 						return nil
 					end
-					
-
+				
 					while snowballSpamEnabled do
 						task.wait(0.005)
 						
@@ -1624,7 +1490,269 @@ local snowballName = "PalletLightBrown"
 						end
 						
 						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
+						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+							end
+							
+							task.wait(0.1)
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, -2, 0)
+								task.wait(0.075)
+								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, -3, 0)
+							    soundPart.Velocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyLinearVelocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyAngularVelocity = Vector3.new(math.huge, math.huge, math.huge)
+							end)
+						end
+					end
+					
+
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
+
+local snowballName = "PalletLightBrown"
+	
+	AuraGroup:AddToggle("SnowballSpamToggle", {
+		Text = "Pallet spam (TEST)",
+		Default = false,
+		Callback = function(on)
+					snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+                        if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+                         
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
+						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						if not tRoot or not myRoot then
+							continue
+						end
+						
+
+						local inv = workspace:FindFirstChild(folderName)
+						local sb = inv and inv:FindFirstChild(snowballName)
+						
+						if not sb then
+							sb = SpawnToy(snowballName)
+							if not sb then continue end
+						end
+						
+						currentSnowball = sb
+						local soundPart = sb:FindFirstChild("SoundPart")
+						if not soundPart then continue end
+						
+
+						pcall(function()
+							CreateGrabLine:FireServer(soundPart, Vector3.zero, myRoot.Position, false)
+						end)
+						task.wait(0.03)
+						
 						soundPart.CanCollide = false
+						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
+						local targetPart = tHead or tRoot
+						
+						if targetPart then
+                             
+							for jitter = 1, 8 do
+								if not soundPart.Parent or not targetPart.Parent then break end
+							end
+                            
+							pcall(function()
+								soundPart.CFrame = targetPart.CFrame * CFrame.Angles(
+                                math.rad(math.random(-180, 180)),
+                                math.rad(math.random(-180, 180)),
+                                math.rad(math.random(-180, 180))
+                            )
+							end)
+
+							    soundPart.Velocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyLinearVelocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyAngularVelocity = Vector3.new(math.huge, math.huge, math.huge)
+
+						end
+					end
+					
+					if currentSnowball and currentSnowball.Parent then
+						pcall(function()
+							DestroyRemote:FireServer(currentSnowball)
+						end)
+					end
+					currentSnowball = nil
+					snowballSpamEnabled = false
+					if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+				end)
+			else
+				snowballSpamEnabled = false
+			end
+		end
+	})
+
+local snowballName = "PalletLightBrown"
+	
+	AuraGroup:AddToggle("SnowballSpamToggle", {
+		Text = "Pallet spam (RAGDOLL)",
+		Default = false,
+		Callback = function(on)
+			snowballSpamEnabled = on
+			
+			if on then
+				local target = selectedKickPlayer
+				if not target then
+					if Toggles.SnowballSpamToggle then
+						Toggles.SnowballSpamToggle:SetValue(false)
+					end
+					notify("Error", "Select target first!", 3)
+					return
+				end
+				
+				task.spawn(function()
+					local RS = game:GetService("ReplicatedStorage")
+					local GE = RS:WaitForChild("GrabEvents")
+					local SetNetworkOwner = GE:WaitForChild("SetNetworkOwner")
+					local CreateGrabLine = GE:WaitForChild("CreateGrabLine")
+					local SpawnRemote = RS:WaitForChild("MenuToys"):WaitForChild("SpawnToyRemoteFunction")
+					local DestroyRemote = RS:WaitForChild("MenuToys"):WaitForChild("DestroyToy")
+					local plr = game.Players.LocalPlayer
+					local myRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+					local folderName = plr.Name .. "SpawnedInToys"
+					local canSpawn = plr:FindFirstChild("CanSpawnToy") or plr:WaitForChild("CanSpawnToy", 3)
+					
+					if not canSpawn then
+						notify("Error", "CanSpawnToy not found!", 3)
+						snowballSpamEnabled = false
+						if Toggles.SnowballSpamToggle then Toggles.SnowballSpamToggle:SetValue(false) end
+						return
+					end
+					
+
+					local function SpawnToy(name)
+						local t = tick()
+						while not canSpawn.Value do
+							if not snowballSpamEnabled or tick() - t > 5 then return nil end
+							task.wait(0.01)
+						end
+						
+                        if myRoot then
+							task.spawn(function()
+								pcall(function()
+									SpawnRemote:InvokeServer(name, myRoot.CFrame * CFrame.new(0, 5, 15), Vector3.new(0, 0, 0))
+								end)
+							end)
+						end
+
+						local inv = workspace:FindFirstChild(folderName)
+						if inv then
+							return inv:WaitForChild(name, 2)
+						end
+						return nil
+					end
+					
+                         
+					while snowballSpamEnabled do
+						task.wait(0.005)
+						
+						if not target or not target.Parent or not target.Character then
+							break
+						end
+						
+						local tChar = target.Character
 						local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
 						if not tRoot or not myRoot then
 							continue
@@ -1650,27 +1778,25 @@ local snowballName = "PalletLightBrown"
 						task.wait(0.03)
 						
 
-						pcall(function()
-							SetNetworkOwner:FireServer(soundPart, myRoot.CFrame)
-						end)
-						task.wait(0.02)
-						
-
-
+						soundPart.Transparency = 1
+						soundPart.CanCollide = false
 						local tHead = tChar and tChar:FindFirstChild("HumanoidRootPart")
 						local targetPart = tHead or tRoot
 						
 						if targetPart then
-
+                             
 							for jitter = 1, 8 do
 								if not soundPart.Parent or not targetPart.Parent then break end
 							end
 							
-
+							task.wait(0.1)
 							pcall(function()
 								soundPart.CFrame = targetPart.CFrame + Vector3.new(0, 1, 0)
-                                task.wait(0.075)
+								task.wait(0.075)
                                 soundPart.CFrame = CFrame.new(0, 500000, 0)
+								soundPart.Velocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyLinearVelocity = Vector3.new(math.huge, math.huge, math.huge)
+								soundPart.AssemblyAngularVelocity = Vector3.new(math.huge, math.huge, math.huge)
 							end)
 							
 							task.wait(0.005)
@@ -1917,6 +2043,105 @@ local snowballName = "SprayCanWD"
 	})
 
 TargetGroup:AddToggle("LoopKickGrabToggle", {
+    Text = "Kick (Spam) TEST 2",
+    Default = false,
+    Callback = function(on)
+        kickLoopEnabled = on
+        if not on then return end
+        task.spawn(function()
+            local Players = game:GetService("Players")
+            local RS = game:GetService("ReplicatedStorage")
+            local RunService = game:GetService("RunService")
+            local Player = Players.LocalPlayer
+            local GE = RS:WaitForChild("GrabEvents")
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local myRoot = Character:WaitForChild("HumanoidRootPart")
+            local savedPos = myRoot.CFrame
+            local dragging = false
+            local grabStart = 0
+            local bodyPosition, bodyGyro
+            while kickLoopEnabled do
+                local target = selectedKickPlayer
+                if not target or not target.Parent then break end
+                local tChar = target.Character
+                local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+                local tHum  = tChar and tChar:FindFirstChild("Humanoid")
+                local tHead = LocalPlayer.Character.Head
+                if tRoot and tHum and tHead and tHum.Health > 0 then
+                    tRoot.AssemblyLinearVelocity = Vector3.zero
+                    tRoot.AssemblyAngularVelocity = Vector3.zero
+                    tRoot.Velocity = Vector3.zero
+                    if not dragging then
+                        myRoot.CFrame = tRoot.CFrame
+                        pcall(function()
+                            tHum.PlatformStand = true
+                            tHum.Sit = true
+                            GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+                        end)
+                        if grabStart == 0 then
+                            grabStart = tick()
+                        elseif tick() - grabStart > 0.1 then
+                            dragging = true
+                            grabStart = 0
+                            myRoot.CFrame = savedPos
+                        end
+                    else
+                        local targetPosition = tHead.Position + Vector3.new(0, 15, 0)
+                        if not bodyPosition or not bodyPosition.Parent then
+                            bodyPosition = Instance.new("BodyPosition")
+                            bodyPosition.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+                            bodyPosition.Parent = tRoot
+                        end
+                        bodyPosition.Position = targetPosition
+                        bodyPosition.P = 8000
+                        bodyPosition.D = 500
+                        if not bodyGyro or not bodyGyro.Parent then
+                            bodyGyro = Instance.new("BodyGyro")
+                            bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+                            bodyGyro.Parent = tRoot
+                        end
+                        bodyGyro.CFrame = CFrame.new(targetPosition)
+                        bodyGyro.P = 7000
+                        bodyGyro.D = 500
+                        pcall(function()
+                            tHum.PlatformStand = true
+                            tHum.Sit = false
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.DestroyGrabLine:FireServer(tRoot)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.DestroyGrabLine:FireServer(tRoot)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.DestroyGrabLine:FireServer(tRoot)
+                        end)
+                    end
+                else
+                    dragging = false
+                    grabStart = 0
+                    if bodyPosition then bodyPosition:Destroy() bodyPosition = nil end
+                    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+                end
+                RunService.Heartbeat:Wait()
+            end
+			while true do
+				bodyGyro.CFrame = CFrame.new(targetPosition)
+                GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+				bodyPosition.Position = targetPosition
+			end
+            myRoot.CFrame = savedPos
+            myRoot.Velocity = Vector3.zero
+            if bodyPosition then bodyPosition:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            kickLoopEnabled = false
+            Toggles.LoopKickGrabToggle:SetValue(false)
+        end)
+    end
+})
+
+TargetGroup:AddToggle("LoopKickGrabToggle", {
     Text = "Kick (Spam) TEST",
     Default = false,
     Callback = function(on)
@@ -1968,8 +2193,8 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             bodyPosition.Parent = tRoot
                         end
                         bodyPosition.Position = targetPosition
-                        bodyPosition.P = 12000
-                        bodyPosition.D = 400
+                        bodyPosition.P = 8000
+                        bodyPosition.D = 500
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
@@ -1977,18 +2202,15 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
                         bodyGyro.P = 7000
-                        bodyGyro.D = 400
+                        bodyGyro.D = 500
                         pcall(function()
-                            tHum.PlatformStand = false
+                            tHum.PlatformStand = true
                             tHum.Sit = false
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
 							GE.DestroyGrabLine:FireServer(tRoot)
-							task.wait()
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							task.wait()
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
 							GE.DestroyGrabLine:FireServer(tRoot)
                         end)
                     end
@@ -2000,6 +2222,11 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 end
                 RunService.Heartbeat:Wait()
             end
+			while true do
+				bodyGyro.CFrame = CFrame.new(targetPosition)
+                GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+				bodyPosition.Position = targetPosition
+			end
             myRoot.CFrame = savedPos
             myRoot.Velocity = Vector3.zero
             if bodyPosition then bodyPosition:Destroy() end
@@ -2009,7 +2236,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
         end)
     end
 })
-
 TargetGroup:AddToggle("LoopKickGrabToggle", {
     Text = "Kick (Spam) New v2",
     Default = false,
@@ -2165,7 +2391,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             bodyPosition.Parent = tRoot
                         end
                         bodyPosition.Position = targetPosition
-                        bodyPosition.P = 17000
+                        bodyPosition.P = 20000
                         bodyPosition.D = 700
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
@@ -2173,7 +2399,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             bodyGyro.Parent = tRoot
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
-                        bodyGyro.P = 7000
+                        bodyGyro.P = 10000
                         bodyGyro.D = 700
                         pcall(function()
 						    GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
@@ -2181,13 +2407,9 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             tHum.Sit = true
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
 							GE.DestroyGrabLine:FireServer(tRoot)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							task.wait()
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							task.wait()
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+							GE.DestroyGrabLine:FireServer(tRoot)
                         end)
                     end
                 else
