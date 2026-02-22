@@ -3839,6 +3839,48 @@ MiscGroup:AddToggle("PacketLagToggle", {
 	end
 })
 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local playJerkOffActive = false
+local jerkOffAnimTrack = nil
+local jerkOffAnimId = "rbxassetid://168268306" 
+local selectedKey = Enum.KeyCode.R 
+
+local function startJerkOff()
+	local plr = Players.LocalPlayer
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then
+		return
+	end
+	local animator = hum:FindFirstChildOfClass("Animator")
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = hum
+	end
+	local anim = Instance.new("Animation")
+	anim.AnimationId = jerkOffAnimId
+	jerkOffAnimTrack = animator:LoadAnimation(anim)
+	jerkOffAnimTrack.Priority = Enum.AnimationPriority.Action
+	jerkOffAnimTrack:Play()
+	task.spawn(function()
+		while playJerkOffActive do
+			task.wait(0.1)
+			if jerkOffAnimTrack and jerkOffAnimTrack.IsPlaying then
+				jerkOffAnimTrack.TimePosition = 0.3
+			end
+		end
+	end)
+end
+
+local function stopJerkOff()
+	if jerkOffAnimTrack then
+		jerkOffAnimTrack:Stop()
+		jerkOffAnimTrack = nil
+	end
+end
+
 MiscGroup:AddToggle("JerkOffToggle", {
 	Text = "Jerk Off",
 	Default = false,
@@ -3865,6 +3907,20 @@ MiscGroup:AddDropdown("JerkKey", {
 		selectedKey = Enum.KeyCode[v]
 	end
 })
+
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then
+		return
+	end
+	if input.KeyCode == selectedKey then
+		playJerkOffActive = not playJerkOffActive
+		if playJerkOffActive then
+			startJerkOff()
+		else
+			stopJerkOff()
+		end
+	end
+end)
 
 	local Triggerbot = {
 		Enabled = false,
