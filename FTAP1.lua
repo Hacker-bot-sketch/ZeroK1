@@ -375,6 +375,37 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
         end
     end
 })
+
+DefenseGroup:AddToggle("AntiGrabObsidian", {
+    Text = "Anti Banana",
+    Default = false,
+    Callback = function(Value)
+       antibanan = Value
+	        if antibanan then
+				local Struggle = ReplicatedStorage:FindFirstChild("CharacterEvents") and ReplicatedStorage.CharacterEvents:FindFirstChild("Struggle")
+			    local RagdollRemote = game:GetService("ReplicatedStorage").CharacterEvents.RagdollRemote
+				local localPlayer = game:GetService("Players").LocalPlayer
+				local char = localPlayer.Character
+				local lleg = localPlayer.Character["Left Leg"]
+				local rleg = localPlayer.Character["Right Leg"]
+				local hrp = localPlayer.Character.HumanoidRootPart
+				local hum = localPlayer.Character.Humanoid
+				local GE = RS:WaitForChild("GrabEvents")
+				RagdollRemote:FireServer(hrp, 0.5)
+				task.wait(0.15)
+				rleg.CFrame = CFrame.new(0, -10000, 0)
+				lleg.CFrame = CFrame.new(0, -10000, 0)
+				task.wait(0.1)
+                GE.SetNetworkOwner:FireServer(hrp, hrp.CFrame)
+				task.wait(0.15)
+				localPlayer.Character.Humanoid.HipHeight = 2
+			  while antibanan and task.wait() do
+				localPlayer.Character.Humanoid.HipHeight = 2
+			  end
+			end
+		end
+})
+
 local antiBlob1T = false
 local function antiBlob1F()
 	antiBlob1T = true
@@ -2041,9 +2072,110 @@ local snowballName = "SprayCanWD"
 			end
 		end
 	})
+TargetGroup:AddToggle("LoopKickGrabToggle", {
+    Text = "Kick (Spam) Normal",
+    Default = false,
+    Callback = function(on)
+        kickLoopEnabled = on
+        if not on then return end
+        task.spawn(function()
+            local Players = game:GetService("Players")
+            local RS = game:GetService("ReplicatedStorage")
+            local RunService = game:GetService("RunService")
+            local Player = Players.LocalPlayer
+			local target = selectedKickPlayer
+            local GE = RS:WaitForChild("GrabEvents")
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local myRoot = Character:WaitForChild("HumanoidRootPart")
+            local savedPos = myRoot.CFrame
+            local dragging = false
+            local grabStart = 0
+            local bodyPosition, bodyGyro
+            while kickLoopEnabled do
+                local target = selectedKickPlayer
+                if not target or not target.Parent then break end
+                local tChar = target.Character
+				local tHed = tChar and tChar:FindFirstChild("Head")
+                local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
+                local tHum  = tChar and tChar:FindFirstChild("Humanoid")
+                local tHead = LocalPlayer.Character.Head
+                if tRoot and tHum and tHead and tHum.Health > 0 then
+                    tRoot.AssemblyLinearVelocity = Vector3.zero
+                    tRoot.AssemblyAngularVelocity = Vector3.zero
+                    tRoot.Velocity = Vector3.zero
+                    if not dragging then
+                        myRoot.CFrame = tRoot.CFrame
+                        pcall(function()
+                            tHum.PlatformStand = true
+                            tHum.Sit = true
+                            GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
+                        end)
+                        if grabStart == 0 then
+                            grabStart = tick()
+                        elseif tick() - grabStart > 0.1 then
+                            dragging = true
+                            grabStart = 0
+                            myRoot.CFrame = savedPos
+                        end
+                    else
+                        local targetPosition = tHead.Position + Vector3.new(0, 13, 0)
+						local BV = Instance.new("BodyVelocity")
+					    BV.Parent = tRoot
+					    BV.MaxForce = Vector3.new(0, 13, 0)
+					    BV.Velocity = Vector3.new(math.huge, math.huge, math.huge)
+                        if not bodyPosition or not bodyPosition.Parent then
+                            bodyPosition = Instance.new("BodyPosition")
+                            bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                            bodyPosition.Parent = tRoot
+                        end
+                        bodyPosition.Position = targetPosition
+                        bodyPosition.P = 50000
+                        bodyPosition.D = 100
+						if not bodyGyro or not bodyGyro.Parent then
+                            bodyGyro = Instance.new("BodyGyro")
+                            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                            bodyGyro.Parent = tRoot
+                        end
+                        bodyGyro.CFrame = CFrame.new(targetPosition)
+                        bodyGyro.P = 0
+                        bodyGyro.D = 0
+                        pcall(function() 
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+						end)
+							if tHed:FindFirstChild("PartOwner") then
+							 pcall(function()
+								GE.DestroyGrabLine:FireServer(tRoot)
+							 end)
+						end
+                    end
+                else
+                    dragging = false
+                    grabStart = 0
+                    if bodyPosition then bodyPosition:Destroy() bodyPosition = nil end
+                    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+                end
+                RunService.Heartbeat:Wait()
+            end
+            myRoot.CFrame = savedPos
+            myRoot.Velocity = Vector3.zero
+            if bodyPosition then bodyPosition:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            kickLoopEnabled = false
+            Toggles.LoopKickGrabToggle:SetValue(false)
+			if distance > 20 then
+			   pcall(function()
+				tpad()
+			   end)
+			end
+        end)
+    end
+})
 
 TargetGroup:AddToggle("LoopKickGrabToggle", {
-    Text = "Kick (Spam) TEST 2",
+    Text = "Kick (Spam) slower",
     Default = false,
     Callback = function(on)
         kickLoopEnabled = on
@@ -2064,6 +2196,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 local target = selectedKickPlayer
                 if not target or not target.Parent then break end
                 local tChar = target.Character
+				local tHed = tChar and tChar:FindFirstChild("Head")
                 local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
                 local tHum  = tChar and tChar:FindFirstChild("Humanoid")
                 local tHead = LocalPlayer.Character.Head
@@ -2078,45 +2211,39 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             tHum.Sit = true
                             GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
                             GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
                         end)
                         if grabStart == 0 then
                             grabStart = tick()
-                        elseif tick() - grabStart > 0.1 then
+                        elseif tick() - grabStart > 0.075 then
                             dragging = true
                             grabStart = 0
                             myRoot.CFrame = savedPos
                         end
                     else
-                        local targetPosition = tHead.Position + Vector3.new(0, 15, 0)
+					    local distance = (myRoot.Position - tRoot.Position).Magnitude
+                        local targetPosition = tHead.Position + Vector3.new(0, 12, 0)
+						local BV = Instance.new("BodyVelocity")
+					    BV.Parent = tRoot
+					    BV.MaxForce = Vector3.new(0, 12, 0)
+					    BV.Velocity = Vector3.new(math.huge, math.huge, math.huge)
                         if not bodyPosition or not bodyPosition.Parent then
                             bodyPosition = Instance.new("BodyPosition")
-                            bodyPosition.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+                            bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
                             bodyPosition.Parent = tRoot
                         end
                         bodyPosition.Position = targetPosition
-                        bodyPosition.P = 8000
-                        bodyPosition.D = 500
-                        if not bodyGyro or not bodyGyro.Parent then
-                            bodyGyro = Instance.new("BodyGyro")
-                            bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-                            bodyGyro.Parent = tRoot
-                        end
-                        bodyGyro.CFrame = CFrame.new(targetPosition)
-                        bodyGyro.P = 7000
-                        bodyGyro.D = 500
-                        pcall(function()
-                            tHum.PlatformStand = true
-                            tHum.Sit = false
+                        bodyPosition.P = 50000
+                        bodyPosition.D = 100
+                        pcall(function() 
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-                        end)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+						end)
+							if tHed:FindFirstChild("PartOwner") then
+							 pcall(function()
+								GE.DestroyGrabLine:FireServer(tRoot)
+							 end)
+						end
                     end
                 else
                     dragging = false
@@ -2126,11 +2253,6 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 end
                 RunService.Heartbeat:Wait()
             end
-			while true do
-				bodyGyro.CFrame = CFrame.new(targetPosition)
-                GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-				bodyPosition.Position = targetPosition
-			end
             myRoot.CFrame = savedPos
             myRoot.Velocity = Vector3.zero
             if bodyPosition then bodyPosition:Destroy() end
@@ -2153,6 +2275,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             local RunService = game:GetService("RunService")
             local Player = Players.LocalPlayer
             local GE = RS:WaitForChild("GrabEvents")
+			local distance = (myRoot.Position - tRoot.Position).Magnitude
             local Character = Player.Character or Player.CharacterAdded:Wait()
             local myRoot = Character:WaitForChild("HumanoidRootPart")
             local savedPos = myRoot.CFrame
@@ -2180,7 +2303,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end)
                         if grabStart == 0 then
                             grabStart = tick()
-                        elseif tick() - grabStart > 0.1 then
+                        elseif tick() - grabStart > 0.05 then
                             dragging = true
                             grabStart = 0
                             myRoot.CFrame = savedPos
@@ -2193,8 +2316,8 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                             bodyPosition.Parent = tRoot
                         end
                         bodyPosition.Position = targetPosition
-                        bodyPosition.P = 8000
-                        bodyPosition.D = 500
+                        bodyPosition.P = 50000
+                        bodyPosition.D = 400
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
                             bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
@@ -2204,17 +2327,15 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         bodyGyro.P = 7000
                         bodyGyro.D = 500
                         pcall(function()
-                            tHum.PlatformStand = true
-                            tHum.Sit = false
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-                        end)
+                            GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
+							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+						end)
+							if tHed:FindFirstChild("PartOwner") then
+							 pcall(function()
+								GE.DestroyGrabLine:FireServer(tRoot)
+							 end)
+						end
                     end
-                else
                     dragging = false
                     grabStart = 0
                     if bodyPosition then bodyPosition:Destroy() bodyPosition = nil end
@@ -2222,22 +2343,34 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 end
                 RunService.Heartbeat:Wait()
             end
-			while true do
-				bodyGyro.CFrame = CFrame.new(targetPosition)
-                GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-				bodyPosition.Position = targetPosition
-			end
             myRoot.CFrame = savedPos
             myRoot.Velocity = Vector3.zero
             if bodyPosition then bodyPosition:Destroy() end
             if bodyGyro then bodyGyro:Destroy() end
             kickLoopEnabled = false
             Toggles.LoopKickGrabToggle:SetValue(false)
+			if distance > 20 then
+            myRoot.CFrame = tRoot.CFrame
+                        pcall(function()
+                            tHum.PlatformStand = true
+                            tHum.Sit = true
+                            GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
+                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
+                        end)
+                        if grabStart == 0 then
+                            grabStart = tick()
+                        elseif tick() - grabStart > 0.15 then
+                            dragging = true
+                            grabStart = 0
+                            myRoot.CFrame = savedPos
+                        end
+             end
         end)
     end
 })
+
 TargetGroup:AddToggle("LoopKickGrabToggle", {
-    Text = "Kick (Spam) New v2",
+    Text = "Kick (Spam) fast",
     Default = false,
     Callback = function(on)
         kickLoopEnabled = on
@@ -2258,6 +2391,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                 local target = selectedKickPlayer
                 if not target or not target.Parent then break end
                 local tChar = target.Character
+				local tHed = tChar and tChar:FindFirstChild("Head")
                 local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
                 local tHum  = tChar and tChar:FindFirstChild("Humanoid")
                 local tHead = LocalPlayer.Character.Head
@@ -2276,141 +2410,37 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                         end)
                         if grabStart == 0 then
                             grabStart = tick()
-                        elseif tick() - grabStart > 0.15 then
+                        elseif tick() - grabStart > 0.075 then
                             dragging = true
                             grabStart = 0
                             myRoot.CFrame = savedPos
                         end
                     else
-                        local targetPosition = tHead.Position + Vector3.new(0, 15, 0)
+                        local targetPosition = tHead.Position + Vector3.new(0, 12, 0)
+						local BV = Instance.new("BodyVelocity")
+					    BV.Parent = tRoot
+					    BV.MaxForce = Vector3.new(0, 12, 0)
+					    BV.Velocity = Vector3.new(math.huge, math.huge, math.huge)
                         if not bodyPosition or not bodyPosition.Parent then
                             bodyPosition = Instance.new("BodyPosition")
-                            bodyPosition.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+                            bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
                             bodyPosition.Parent = tRoot
                         end
                         bodyPosition.Position = targetPosition
-                        bodyPosition.P = 17000
-                        bodyPosition.D = 700
+                        bodyPosition.P = 50000
+                        bodyPosition.D = 400
                         if not bodyGyro or not bodyGyro.Parent then
                             bodyGyro = Instance.new("BodyGyro")
-                            bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+                            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
                             bodyGyro.Parent = tRoot
                         end
                         bodyGyro.CFrame = CFrame.new(targetPosition)
                         bodyGyro.P = 7000
-                        bodyGyro.D = 700
-                        pcall(function()
-						    GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-                            tHum.PlatformStand = true
-                            tHum.Sit = true
-							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-							GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-                            GE.DestroyGrabLine:FireServer(tRoot)
-                        end)
-                    end
-                else
-                    dragging = false
-                    grabStart = 0
-                    if bodyPosition then bodyPosition:Destroy() bodyPosition = nil end
-                    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
-                end
-                RunService.Heartbeat:Wait()
-            end
-			if not bodyPosition.Position == targetPosition then
-				return
-			end
-            myRoot.CFrame = savedPos
-            myRoot.Velocity = Vector3.zero
-            if bodyPosition then bodyPosition:Destroy() end
-            if bodyGyro then bodyGyro:Destroy() end
-            kickLoopEnabled = false
-            Toggles.LoopKickGrabToggle:SetValue(false)
-			while true do
-				bodyGyro.CFrame = CFrame.new(targetPosition)
-				GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-				bodyPosition.Position = targetPosition
-			end
-        end)
-    end
-})
-
-
-TargetGroup:AddToggle("LoopKickGrabToggle", {
-    Text = "Kick (Spam) New",
-    Default = false,
-    Callback = function(on)
-        kickLoopEnabled = on
-        if not on then return end
-        task.spawn(function()
-            local Players = game:GetService("Players")
-            local RS = game:GetService("ReplicatedStorage")
-            local RunService = game:GetService("RunService")
-            local Player = Players.LocalPlayer
-            local GE = RS:WaitForChild("GrabEvents")
-            local Character = Player.Character or Player.CharacterAdded:Wait()
-            local myRoot = Character:WaitForChild("HumanoidRootPart")
-            local savedPos = myRoot.CFrame
-            local dragging = false
-            local grabStart = 0
-            local bodyPosition, bodyGyro
-            while kickLoopEnabled do
-                local target = selectedKickPlayer
-                if not target or not target.Parent then break end
-                local tChar = target.Character
-                local tRoot = tChar and tChar:FindFirstChild("HumanoidRootPart")
-                local tHum  = tChar and tChar:FindFirstChild("Humanoid")
-                local tHead = LocalPlayer.Character.Head
-                if tRoot and tHum and tHead and tHum.Health > 0 then
-                    tRoot.AssemblyLinearVelocity = Vector3.zero
-                    tRoot.AssemblyAngularVelocity = Vector3.zero
-                    tRoot.Velocity = Vector3.zero
-                    if not dragging then
-                        myRoot.CFrame = tRoot.CFrame
-                        pcall(function()
-                            tHum.PlatformStand = true
-                            tHum.Sit = true
-                            GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-                            GE.CreateGrabLine:FireServer(tRoot, Vector3.zero, tRoot.Position, false)
-							GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-                        end)
-                        if grabStart == 0 then
-                            grabStart = tick()
-                        elseif tick() - grabStart > 0.15 then
-                            dragging = true
-                            grabStart = 0
-                            myRoot.CFrame = savedPos
-                        end
-                    else
-                        local targetPosition = tHead.Position + Vector3.new(0, 15, 0)
-                        if not bodyPosition or not bodyPosition.Parent then
-                            bodyPosition = Instance.new("BodyPosition")
-                            bodyPosition.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-                            bodyPosition.Parent = tRoot
-                        end
-                        bodyPosition.Position = targetPosition
-                        bodyPosition.P = 20000
-                        bodyPosition.D = 700
-                        if not bodyGyro or not bodyGyro.Parent then
-                            bodyGyro = Instance.new("BodyGyro")
-                            bodyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-                            bodyGyro.Parent = tRoot
-                        end
-                        bodyGyro.CFrame = CFrame.new(targetPosition)
-                        bodyGyro.P = 10000
-                        bodyGyro.D = 700
-                        pcall(function()
-						    GE.SetNetworkOwner:FireServer(tRoot, myRoot.CFrame)
-                            tHum.PlatformStand = true
-                            tHum.Sit = true
+                        bodyGyro.D = 500
+                        pcall(function() 
 							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
 							GE.DestroyGrabLine:FireServer(tRoot)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.SetNetworkOwner:FireServer(tRoot, tRoot.CFrame)
-							GE.DestroyGrabLine:FireServer(tRoot)
-                        end)
+						end)
                     end
                 else
                     dragging = false
@@ -2426,6 +2456,11 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
             if bodyGyro then bodyGyro:Destroy() end
             kickLoopEnabled = false
             Toggles.LoopKickGrabToggle:SetValue(false)
+			if distance > 20 then
+			   pcall(function()
+				tpad()
+			   end)
+			end
         end)
     end
 })
