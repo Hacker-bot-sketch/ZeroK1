@@ -317,8 +317,10 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
     Default = false,
     Callback = function(Value)
         local RunService = game:GetService("RunService")
+		local RagdollRemote = game:GetService("ReplicatedStorage").CharacterEvents.RagdollRemote
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local localPlayer = game:GetService("Players").LocalPlayer
+		local hrp = localPlayer.Character.HumanoidRootPart
         local CharacterEvents = ReplicatedStorage:FindFirstChild("CharacterEvents")
         local Struggle = CharacterEvents and CharacterEvents:FindFirstChild("Struggle")
 
@@ -336,6 +338,7 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
                             if Struggle then
                                 pcall(function()
                                     Struggle:FireServer(localPlayer)
+									RagdollRemote:FireServer(hrp, 0.005)
                                 end)
                             end
 
@@ -350,9 +353,9 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
                             end
 
                             local isHeld = localPlayer:FindFirstChild("IsHeld")
-                            while isHeld and isHeld.Value do
-                                task.wait()
-                            end
+							while isHeld and isHeld.Value do
+								task.wait()
+							end
 
                             for _, part in pairs(character:GetChildren()) do
                                 if part:IsA("BasePart") then
@@ -374,6 +377,67 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
             end
         end
     end
+})
+
+DefenseGroup:AddToggle("AntiGrabObsidian", {
+    Text = "pcld break",
+    Default = false,
+    Callback = function(Value)
+	   pcld = Value
+	   if pcld then
+        local held = game:GetService("Players").LocalPlayer.IsHeld
+        local pcld = workspace.PlayerCharacterLocationDetector
+        local pos = workspace.Plots.Plot3.ItemMaker.ItemSelect.ItemButton1.CFrame
+        if pcld then
+	       LocalPlayer.Character.Humanoid.Health = 0
+	       pcld.CFrame = pos
+	       task.wait(3.5)
+	       LocalPlayer.Character.Humanoid.Health = 0
+	       pcld.CFrame = pos
+        end
+		end
+    end
+})
+
+DefenseGroup:AddToggle("AntiGrabObsidian", {
+    Text = "Anti Grab new TEST",
+    Default = false,
+    Callback = function(Value)
+	     AntiGrab = Value
+      if AntiGrab then
+        while AntiGrab and task.wait() do
+        local hp = workspace.Marakosak5.Humanoid.Health
+        local Struggle = ReplicatedStorage:FindFirstChild("CharacterEvents") and ReplicatedStorage.CharacterEvents:FindFirstChild("Struggle")
+        local RagdollRemote = game:GetService("ReplicatedStorage").CharacterEvents.RagdollRemote
+        local localPlayer = game:GetService("Players").LocalPlayer
+        local char = localPlayer.Character
+        local AGWalk = localPlayer.Character or localPlayer.CharacterAdded:wait(), false
+        local hrp = localPlayer.Character.HumanoidRootPart
+        local hum = localPlayer.Character.Humanoid
+          local head = char:FindFirstChild("Head")
+        if hp == 0 then
+           return
+        end
+        if head:FindFirstChild("PartOwner") then
+           hrp.Anchored = true
+		   Struggle:FireServer(localPlayer)
+		   ReplicatedStorage.GameCorrectionEvents.StopAllVelocity:FireServer()
+           RagdollRemote:FireServer(hrp, 0)
+		   hrp.Anchored = false
+		   Struggle:FireServer(localPlayer)
+        end
+        local isHeld = localPlayer:FindFirstChild("IsHeld")
+        while isHeld and isHeld.Value and task.wait() do
+        hrp.Anchored = true
+        Struggle:FireServer(localPlayer)
+        ReplicatedStorage.GameCorrectionEvents.StopAllVelocity:FireServer()
+		RagdollRemote:FireServer(hrp, 0)
+        hrp.Anchored = false
+		Struggle:FireServer(localPlayer)
+      end
+    end
+  end
+  end
 })
 
 DefenseGroup:AddToggle("AntiGrabObsidian", {
@@ -2000,7 +2064,7 @@ local snowballName = "SprayCanWD"
 		end
 	})
 
- loopKickDualActive = false
+ local loopKickDualActive = false
 	BlobGroup:AddToggle("DualHandLoopKick", {
 		Text = "Loop Kick(Lock)",
 		Default = false,
@@ -2050,22 +2114,18 @@ local snowballName = "SprayCanWD"
 							if targetChar ~= lastTargetCharDual then
 								lastTargetCharDual = targetChar
 								if bp then bp:Destroy() bp = nil end
-								grab:FireServer(leftDet, targetHRP, leftWeld)
-								drop:FireServer(leftWeld, targetHRP)
 								bp = Instance.new("BodyPosition")
-								bp.Position = Vector3.new(0, 999999, 0)
+								bp.Position = Vector3.new(0, 12, 0)
 								bp.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 								bp.Parent = targetHRP
-								grab:FireServer(leftDet, targetHRP, leftWeld)
-								drop:FireServer(leftWeld, targetHRP)
 							end
 							grab:FireServer(leftDet, targetHRP, leftWeld)
-							task.wait()
+							task.wait(0.001)
 							release:FireServer(leftWeld, targetHRP)
-							task.wait()
-							drop:FireServer(leftWeld, targetHRP)
+							task.wait(0.001)
+                            grab:FireServer(leftDet, targetHRP, leftWeld)
 						else
-							task.wait(0.1)
+							task.wait(0.05)
 						end
 					end
 					if bp then bp:Destroy() end
@@ -2107,7 +2167,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                     tRoot.AssemblyAngularVelocity = Vector3.zero
                     tRoot.Velocity = Vector3.zero
                     if not dragging then
-                        myRoot.CFrame = tRoot.CFrame
+                        myRoot.CFrame = tRoot.CFrame + Vector3.new(0, -10, 0)
                         pcall(function()
                             tHum.PlatformStand = true
                             tHum.Sit = true
@@ -2208,7 +2268,7 @@ TargetGroup:AddToggle("LoopKickGrabToggle", {
                     tRoot.AssemblyAngularVelocity = Vector3.zero
                     tRoot.Velocity = Vector3.zero
                     if not dragging then
-                        myRoot.CFrame = tRoot.CFrame
+                        myRoot.CFrame = tRoot.CFrame + Vector3.new(0, -10, 0)
                         pcall(function()
                             tHum.PlatformStand = true
                             tHum.Sit = true
