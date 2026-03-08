@@ -4535,9 +4535,6 @@ BuildGroup:AddToggle("HeartSparklerBuild", {
 })
 local KeybindsGroup = Tabs.Keybinds:AddLeftGroupbox("Keybinds")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-
-local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 
 local tpEnabled = true -- можно убрать, если не нужен on/off
