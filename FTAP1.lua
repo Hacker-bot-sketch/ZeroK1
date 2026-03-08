@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
 loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
@@ -375,26 +376,6 @@ DefenseGroup:AddToggle("AntiGrabObsidian", {
                 end
             end
         end
-    end
-})
-
-DefenseGroup:AddToggle("AntiGrabObsidian", {
-    Text = "pcld break",
-    Default = false,
-    Callback = function(Value)
-	   pcld = Value
-	   if pcld then
-        local held = game:GetService("Players").LocalPlayer.IsHeld
-        local pcld = workspace.PlayerCharacterLocationDetector
-        local pos = workspace.Plots.Plot3.ItemMaker.ItemSelect.ItemButton1.CFrame
-        if pcld then
-	       LocalPlayer.Character.Humanoid.Health = 0
-	       pcld.CFrame = pos
-	       task.wait(3.5)
-	       LocalPlayer.Character.Humanoid.Health = 0
-	       pcld.CFrame = pos
-        end
-		end
     end
 })
 
